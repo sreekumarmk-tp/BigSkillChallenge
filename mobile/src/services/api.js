@@ -1,8 +1,10 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// In an actual build, use your machine IP or environment variable here
-const API_URL = 'http://10.0.2.2:8000/api/v1'; 
+import { Platform } from 'react-native';
+
+const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+const API_URL = `http://${HOST}:8000/api/v1`; 
 
 const api = axios.create({
   baseURL: API_URL,

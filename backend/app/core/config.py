@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import Optional
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Big Skill Challenge MVP"
@@ -13,6 +14,10 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "bigskill_db"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: str = "5432"
+    
+    # LLM Settings
+    LLM_API_KEY: Optional[str] = None
+    LLM_PROVIDER: str = "mock"
 
     @property
     def DATABASE_URL(self) -> str:

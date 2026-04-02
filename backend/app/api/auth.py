@@ -56,3 +56,23 @@ def login_access_token(
         ),
         "token_type": "bearer",
     }
+
+class VerifyEmailRequest(schemas.BaseModel):
+    otp: str
+
+@router.post("/verify-email")
+def verify_email(
+    request: VerifyEmailRequest,
+    current_user: models.User = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db)
+) -> Any:
+    """
+    Verify user email using OTP. Mock implementation.
+    """
+    # In a real app we'd verify the OTP here. 
+    # For now any 6-digit OTP works, we'll just return success.
+    if len(request.otp) != 6:
+        raise HTTPException(status_code=400, detail="Invalid OTP length")
+    
+    # We could set a `is_verified` flag on the user here if we had one.
+    return {"message": "Email verified successfully."}

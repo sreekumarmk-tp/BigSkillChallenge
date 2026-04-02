@@ -9,7 +9,7 @@ from app.api import deps
 router = APIRouter()
 
 @router.post("/", response_model=schemas.PaymentResponse)
-def process_mock_payment(
+async def process_mock_payment(
     *,
     db: Session = Depends(deps.get_db),
     payment_in: schemas.PaymentCreate,
@@ -19,6 +19,9 @@ def process_mock_payment(
     Process a mock payment. In a real application, this would integrate
     with Stripe or Razorpay APIs to confirm the transaction.
     """
+    import asyncio
+    await asyncio.sleep(1.5) # Simulate processing delay
+    
     comp = db.query(models.Competition).filter(models.Competition.id == payment_in.competition_id).first()
     if not comp:
         raise HTTPException(status_code=404, detail="Competition not found")

@@ -16,6 +16,24 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+@app.on_event("startup")
+def startup_event():
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        comp = db.query(models.Competition).first()
+        if not comp:
+            default_comp = models.Competition(
+                title="Big Skill Challenge - BMW X5",
+                description="Win a brand new BMW X5 by testing your skills.",
+                entry_fee=2.99,
+                is_active=True
+            )
+            db.add(default_comp)
+            db.commit()
+    finally:
+        db.close()
+
 # Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
