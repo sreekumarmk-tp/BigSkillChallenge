@@ -7,27 +7,46 @@ import GradientBackground from '../components/GradientBackground';
 import { COLORS, SIZES, GLOBAL_STYLES } from '../theme/constants';
 
 const DashboardScreen = ({ navigation }) => {
-  const { logout } = useContext(AppContext);
+  const { logout, competition } = useContext(AppContext);
   const [entries, setEntries] = useState([]);
+  const [attempts, setAttempts] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchEntries = async () => {
+  const fetchData = async () => {
     try {
-      const res = await api.get('/submissions/me');
-      setEntries(res.data);
+      const resEntries = await api.get('/submissions/me');
+      setEntries(resEntries.data || []);
+      
+      if (competition) {
+        const resAttempts = await api.get(`/quiz/attempts/${competition.id}`);
+        setAttempts(resAttempts.data || []);
+      }
     } catch (e) {
       console.log(e);
     }
   };
 
   useEffect(() => {
-    fetchEntries();
-  }, []);
+    fetchData();
+    // Add listener to refresh data when returning to this screen
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchData();
+    });
+    return unsubscribe;
+  }, [competition, navigation]);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    fetchEntries().then(() => setRefreshing(false));
-  }, []);
+    fetchData().then(() => setRefreshing(false));
+  }, [competition]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Landing' }],
+    });
+  };
 
   return (
     <GradientBackground>
@@ -38,26 +57,38 @@ const DashboardScreen = ({ navigation }) => {
         >
           <View style={styles.header}>
             <Text style={styles.title}>Your Dashboard</Text>
-            <TouchableOpacity onPress={() => logout()}>
+            <TouchableOpacity onPress={handleLogout}>
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>
           </View>
           
           <View style={[GLOBAL_STYLES.glassCard, styles.statsCard]}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{entries.length}</Text>
-              <Text style={styles.statLabel}>Entries Used</Text>
+              <Text style={styles.statValue}>{attempts.length}</Text>
+              <Text style={styles.statLabel}>Quiz Attempts</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{10 - entries.length}</Text>
-              <Text style={styles.statLabel}>Slots Left</Text>
+              <Text style={styles.statValue}>{10 - attempts.length}</Text>
+              <Text style={styles.statLabel}>Attempts Left</Text>
             </View>
           </View>
 
-          <TouchableOpacity style={styles.newEntryBtn} onPress={() => navigation.navigate('Eligibility')}>
-            <Text style={styles.newEntryBtnText}>+ START NEW ENTRY</Text>
-          </TouchableOpacity>
+          {attempts.some(a => a.status === 'pending') ? (
+            <TouchableOpacity style={styles.newEntryBtn} onPress={() => navigation.navigate('Quiz')}>
+              <Text style={styles.newEntryBtnText}>RESUME YOUR QUIZ</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={[styles.newEntryBtn, attempts.length >= 10 && styles.btnDisabled]} 
+              disabled={attempts.length >= 10}
+              onPress={() => navigation.navigate('Eligibility')}
+            >
+              <Text style={styles.newEntryBtnText}>
+                {attempts.length >= 10 ? 'MAX ATTEMPTS USED' : '+ START NEW ENTRY'}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <Text style={styles.sectionTitle}>Recent Entries</Text>
           
@@ -142,6 +173,10 @@ const styles = StyleSheet.create({
     color: COLORS.primary.orangeStart,
     fontWeight: 'bold',
     letterSpacing: 1,
+  },
+  btnDisabled: {
+    opacity: 0.5,
+    borderColor: COLORS.text.secondary,
   },
   sectionTitle: {
     fontSize: 20,

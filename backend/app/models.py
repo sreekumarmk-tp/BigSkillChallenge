@@ -71,3 +71,28 @@ class Score(Base):
     feedback = Column(Text)
     
     entry = relationship("Entry", back_populates="score")
+
+class Question(Base):
+    __tablename__ = "questions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String(500))
+    option_a = Column(String(200))
+    option_b = Column(String(200))
+    option_c = Column(String(200))
+    option_d = Column(String(200))
+    correct_answer = Column(String(1)) # A, B, C, or D
+
+class QuizAttempt(Base):
+    __tablename__ = "quiz_attempts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    competition_id = Column(Integer, ForeignKey("competitions.id"))
+    attempt_number = Column(Integer)
+    status = Column(String(20), default="pending") # pending, passed, failed
+    score = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")
+    competition = relationship("Competition")

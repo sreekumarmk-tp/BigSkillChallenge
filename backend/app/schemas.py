@@ -90,3 +90,53 @@ class EntryResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# --- Quiz Schemas ---
+class QuestionResponse(BaseModel):
+    id: int
+    text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+    
+    class Config:
+        from_attributes = True
+
+class QuizAttemptBase(BaseModel):
+    competition_id: int
+
+class QuizAttemptCreate(QuizAttemptBase):
+    pass
+
+class QuizAttemptResponse(QuizAttemptBase):
+    id: int
+    user_id: int
+    attempt_number: int
+    status: str
+    score: int
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class AnswerSubmission(BaseModel):
+    question_id: int
+    answer: str # A, B, C, or D
+
+class AnswerEvaluationRequest(BaseModel):
+    attempt_id: int
+    question_id: int
+    answer: str
+
+class QuizSubmission(BaseModel):
+    attempt_id: int
+    answers: List[AnswerSubmission]
+
+class QuizStartResponse(BaseModel):
+    attempt_id: int
+    questions: List[QuestionResponse]
+    attempt_number: int
+    
+    class Config:
+        from_attributes = True
