@@ -123,7 +123,7 @@ if __name__ == "__main__":
     print("🔄 Generating test cases module by module...\n")
 
     all_test_cases = ""
-    counter = 1
+    counter = 1   # starting TC number
 
     for module in modules:
         print(f"👉 Generating for {module}...")
@@ -132,4 +132,9 @@ if __name__ == "__main__":
 
         all_test_cases += result + "\n"
 
-        counter += 12  # move to next block
+        counter += 12   # because we generate 12 test cases per module
+
+    print("\n=== FINAL TEST CASES ===")
+    print(all_test_cases)
+
+    save_to_excel(all_test_cases)
