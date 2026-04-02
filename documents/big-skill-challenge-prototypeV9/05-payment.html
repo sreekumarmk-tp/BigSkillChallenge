@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>05 · Secure Payment — The Big Skill Challenge™</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(ellipse at 50% -10%,#c7d2fe 0%,#eef2ff 55%,#f8faff 100%);min-height:100vh;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:40px 20px 60px}
+/* ── Device Frame ── */
+.device-frame{width:390px;border-radius:54px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 0 0 10px #0d0d22,0 0 0 11px rgba(255,255,255,.08),0 50px 130px rgba(0,0,0,.95),0 0 80px rgba(100,40,200,.3);flex-shrink:0;position:relative}
+.d-status{height:50px;background:rgba(8,0,46,.98);display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 10px;position:relative;flex-shrink:0}
+.d-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#0d0d22;border-radius:0 0 22px 22px;display:flex;align-items:center;justify-content:center;gap:8px;z-index:10}
+.d-speaker{width:64px;height:5px;background:#1a1a30;border-radius:3px}.d-cam{width:12px;height:12px;background:#1a1a30;border-radius:50%;border:1.5px solid #252545}.d-time{font-size:15px;font-weight:600;color:#fff;letter-spacing:-.02em;line-height:1}.d-icons{display:flex;align-items:center;gap:5px}
+.phone{height:760px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:radial-gradient(1.5px 1.5px at 22px 75px,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(2px 2px at 338px 92px,rgba(255,255,255,.65) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 32px 272px,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(2px 2px at 368px 322px,rgba(255,255,255,.55) 0%,transparent 100%),linear-gradient(180deg,#08002E 0%,#12006E 50%,#1A0A7C 100%);display:flex;flex-direction:column;position:relative}
+.phone::-webkit-scrollbar{display:none}
+.d-home{height:34px;background:rgba(8,0,46,.98);display:flex;align-items:center;justify-content:center;flex-shrink:0}.d-bar{width:134px;height:5px;background:rgba(255,255,255,.28);border-radius:3px}
+.skip{position:absolute;top:-100px;left:12px;background:#F59E0B;color:#000;padding:8px 16px;border-radius:8px;font-weight:700;z-index:100;text-decoration:none}.skip:focus{top:8px}
+:focus-visible{outline:3px solid #635BFF;outline-offset:2px;border-radius:4px}
+button,a{min-height:44px}
+
+/* ── Dark header (themed) ── */
+header{position:sticky;top:0;z-index:40;background:rgba(8,0,46,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.back{width:40px;height:40px;background:rgba(255,255,255,.1);border:none;border-radius:12px;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hdr-text{flex:1}
+.hdr-title{font-weight:800;font-size:15px;color:#fff}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px}
+
+/* ── Stripe Checkout Sheet ── */
+main{flex:1;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+
+/* ── Order banner (dark, branded) ── */
+.order-banner{background:linear-gradient(160deg,#1a0a4e 0%,#0d0030 100%);padding:20px 20px 24px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.ob-merchant{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.ob-icon{width:40px;height:40px;background:linear-gradient(135deg,#F59E0B,#EA580C);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ob-name{font-size:14px;font-weight:700;color:#fff}
+.ob-desc{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px}
+.ob-amount-row{display:flex;align-items:flex-end;justify-content:space-between}
+.ob-amount{font-size:34px;font-weight:900;color:#fff;letter-spacing:-.02em;line-height:1}
+.ob-currency{font-size:14px;color:rgba(255,255,255,.5);font-weight:600;margin-bottom:4px}
+.ob-item{font-size:12px;color:rgba(255,255,255,.45);margin-top:4px}
+
+/* ── Stripe White Form Sheet ── */
+.stripe-sheet{background:#fff;flex:1;border-radius:0;padding:0 0 4px}
+
+/* ── Email section ── */
+.sheet-section{padding:20px 20px 0}
+.sheet-label{font-size:11px;font-weight:600;color:#6B7280;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+
+/* ── Stripe-style inputs ── */
+.s-field{margin-bottom:0}
+.s-label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px}
+.s-input{width:100%;background:#F9FAFB;border:1.5px solid #D1D5DB;border-radius:8px;padding:11px 14px;font-size:15px;color:#111827;outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s;min-height:46px}
+.s-input::placeholder{color:#9CA3AF}
+.s-input:focus{border-color:#635BFF;box-shadow:0 0 0 3px rgba(99,91,255,.12);background:#fff}
+.s-input.has-icon{padding-left:44px}
+
+/* ── Card group box (Stripe grouped fields) ── */
+.card-group{border:1.5px solid #D1D5DB;border-radius:8px;overflow:hidden;background:#F9FAFB;transition:border-color .15s,box-shadow .15s}
+.card-group:focus-within{border-color:#635BFF;box-shadow:0 0 0 3px rgba(99,91,255,.12);background:#fff}
+.cg-row{display:flex;align-items:center;position:relative;padding:11px 14px;min-height:46px}
+.cg-row+.cg-row{border-top:1.5px solid #E5E7EB}
+.cg-input{flex:1;background:transparent;border:none;outline:none;font-size:15px;color:#111827;font-family:inherit;min-height:24px}
+.cg-input::placeholder{color:#9CA3AF}
+.cg-divider{display:flex}
+.cg-half{flex:1;display:flex;align-items:center;padding:11px 14px;min-height:46px;position:relative}
+.cg-half+.cg-half{border-left:1.5px solid #E5E7EB}
+.cg-half input{flex:1;background:transparent;border:none;outline:none;font-size:15px;color:#111827;font-family:inherit;width:100%}
+.cg-half input::placeholder{color:#9CA3AF}
+.cg-half label,.cg-row-label{position:absolute;top:4px;left:14px;font-size:10px;font-weight:600;color:#9CA3AF;letter-spacing:.04em;text-transform:uppercase}
+.cg-half label{left:14px}
+.cg-half:last-child label{left:14px}
+
+/* card brand icons */
+.card-brands{display:flex;gap:4px;align-items:center;flex-shrink:0}
+.cb{width:28px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:900;letter-spacing:-.02em;border:1px solid #E5E7EB}
+.cb-visa{background:#1A1F71;color:#fff}
+.cb-mc{background:#fff;color:#EB001B;position:relative;overflow:hidden}
+.cb-mc::before{content:'';position:absolute;left:6px;width:12px;height:12px;background:#EB001B;border-radius:50%}
+.cb-mc::after{content:'';position:absolute;right:6px;width:12px;height:12px;background:#F79E1B;border-radius:50%;mix-blend-mode:multiply}
+.cb-amex{background:#2E77BC;color:#fff}
+
+/* ── Divider ── */
+.or-divider{display:flex;align-items:center;gap:10px;padding:0 20px;margin:16px 0}
+.or-line{flex:1;height:1px;background:#E5E7EB}
+.or-text{font-size:11px;color:#9CA3AF;font-weight:500}
+
+/* ── Name / Country ── */
+.form-grid{display:grid;grid-template-columns:1fr;gap:12px;padding:0 20px;margin-bottom:0}
+.country-wrap{position:relative}
+.country-select{width:100%;background:#F9FAFB;border:1.5px solid #D1D5DB;border-radius:8px;padding:11px 36px 11px 14px;font-size:15px;color:#111827;outline:none;font-family:inherit;appearance:none;cursor:pointer;min-height:46px;transition:border-color .15s}
+.country-select:focus{border-color:#635BFF;box-shadow:0 0 0 3px rgba(99,91,255,.12)}
+.country-arrow{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#9CA3AF;font-size:12px}
+
+/* ── Pay button ── */
+.pay-wrap{padding:20px 20px 0}
+.btn-pay-stripe{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#635BFF;color:#fff;font-weight:700;font-size:16px;border:none;border-radius:8px;padding:14px 20px;cursor:pointer;min-height:50px;box-shadow:0 2px 8px rgba(99,91,255,.4),0 1px 2px rgba(0,0,0,.1);transition:background .15s,box-shadow .15s;letter-spacing:.01em}
+.btn-pay-stripe:hover{background:#5B53F0}
+.btn-pay-stripe:active{background:#4F48D9}
+
+/* ── Powered by Stripe ── */
+.stripe-footer{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 20px 6px;flex-shrink:0}
+.powered-text{font-size:11px;color:#9CA3AF;font-weight:500}
+.stripe-wordmark{display:flex;align-items:center}
+
+/* ── Security badges ── */
+.security-row{display:flex;align-items:center;justify-content:center;gap:12px;padding:4px 20px 16px}
+.sec-badge{display:flex;align-items:center;gap:4px;font-size:10px;color:#9CA3AF;font-weight:500}
+
+/* ── Recovery note ── */
+.recovery-note{margin:12px 20px 0;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400E;line-height:1.5}
+
+/* ── Sheet footer ── */
+.sheet-footer{background:#F9FAFB;border-top:1px solid #E5E7EB;padding:10px 20px;text-align:center;font-size:10px;color:#9CA3AF;line-height:1.5;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="device-frame" role="region" aria-label="Mobile phone prototype">
+  <div class="d-status" aria-hidden="true">
+    <div class="d-notch"><div class="d-speaker"></div><div class="d-cam"></div></div>
+    <span class="d-time">9:41</span>
+    <div class="d-icons">
+      <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="white"/><rect x="4.5" y="4.5" width="3" height="6.5" rx="1" fill="white"/><rect x="9" y="2" width="3" height="9" rx="1" fill="white"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="white" opacity=".35"/></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="none"><path d="M0.5 3A10 10 0 0114.5 3" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".35"/><path d="M3 5.8A6.5 6.5 0 0112 5.8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M5.5 8.6A3.2 3.2 0 019.5 8.6" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="7.5" cy="10.5" r="0.9" fill="white"/></svg>
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="white" stroke-opacity=".6"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="white"/><path d="M22 4v4a2 2 0 000-4z" fill="white" opacity=".5"/></svg>
+    </div>
+  </div>
+
+  <div class="phone">
+    <a class="skip" href="#main">Skip to main content</a>
+
+    <header role="banner">
+      <button class="back" onclick="history.back()" aria-label="Go back">←</button>
+      <div class="hdr-text">
+        <div class="hdr-title">Secure Checkout</div>
+        <div class="hdr-sub">Powered by Stripe</div>
+      </div>
+      <!-- Stripe S mark -->
+      <svg width="22" height="22" viewBox="0 0 60 60" aria-label="Stripe" role="img"><rect width="60" height="60" rx="8" fill="#635BFF"/><path d="M30.2 22.3c0-1.8 1.5-2.5 3.9-2.5 3.5 0 7.9 1.1 11.4 3V13.2C41.9 11.4 38.3 10.7 34.1 10.7c-8.3 0-13.8 4.3-13.8 11.5 0 11.2 15.4 9.4 15.4 14.2 0 2.1-1.8 2.8-4.4 2.8-3.8 0-8.7-1.6-12.5-3.7v9.8c4.3 1.8 8.6 2.6 12.5 2.6 8.5 0 14.3-4.2 14.3-11.5-.1-12.1-15.4-9.9-15.4-14.1z" fill="#fff"/></svg>
+    </header>
+
+    <main id="main">
+      <!-- ── Order Banner ── -->
+      <div class="order-banner">
+        <div class="ob-merchant">
+          <div class="ob-icon" aria-hidden="true">🏆</div>
+          <div>
+            <div class="ob-name">The Big Skill Challenge™</div>
+            <div class="ob-desc">bigskillchallenge.com.au</div>
+          </div>
+        </div>
+        <div class="ob-amount-row">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:6px">
+              <span class="ob-currency">AUD</span>
+              <span class="ob-amount">A$2.99</span>
+            </div>
+            <div class="ob-item">BMW X5 SUV — 1 Competition Entry</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:rgba(255,255,255,.35);margin-bottom:3px">TRUST ACCOUNT</div>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-label="Secure trust account"><path d="M12 2L4 6v6c0 5.2 3.4 10 8 12 4.6-2 8-6.8 8-12V6l-8-4z" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="#4ADE80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Stripe White Sheet ── -->
+      <div class="stripe-sheet">
+
+        <!-- Email for receipt -->
+        <div class="sheet-section" style="padding-bottom:16px">
+          <div class="sheet-label">Contact</div>
+          <div class="s-field">
+            <label class="s-label" for="s-email">Email</label>
+            <input class="s-input" id="s-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-required="true">
+          </div>
+        </div>
+
+        <div class="or-divider"><div class="or-line"></div><div class="or-text">PAYMENT DETAILS</div><div class="or-line"></div></div>
+
+        <!-- Card group (Stripe Elements style) -->
+        <div style="padding:0 20px">
+          <div class="s-label" style="margin-bottom:8px">Card information</div>
+          <div class="card-group" role="group" aria-label="Card details">
+            <!-- Card number row -->
+            <div class="cg-row">
+              <input class="cg-input" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="1234 1234 1234 1234" aria-label="Card number" aria-required="true" id="s-cardnum">
+              <div class="card-brands" aria-hidden="true">
+                <div class="cb cb-visa" title="Visa">VISA</div>
+                <div class="cb cb-mc" title="Mastercard"></div>
+                <div class="cb cb-amex" title="Amex" style="font-size:6px">AMEX</div>
+              </div>
+            </div>
+            <!-- Expiry / CVC -->
+            <div class="cg-divider">
+              <div class="cg-half">
+                <label for="s-exp">MM / YY</label>
+                <input id="s-exp" type="text" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY" aria-label="Expiry date" aria-required="true" style="margin-top:14px">
+              </div>
+              <div class="cg-half">
+                <label for="s-cvc">CVC</label>
+                <input id="s-cvc" type="text" inputmode="numeric" autocomplete="cc-csc" placeholder="CVC" aria-label="CVC security code" aria-required="true" style="margin-top:14px">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Name on card -->
+        <div class="form-grid" style="margin-top:12px">
+          <div class="s-field">
+            <label class="s-label" for="s-name">Name on card</label>
+            <input class="s-input" id="s-name" type="text" autocomplete="cc-name" placeholder="Full name as on card" aria-required="true">
+          </div>
+        </div>
+
+        <!-- Country (pre-selected Australia) -->
+        <div class="form-grid" style="margin-top:12px">
+          <div class="s-field">
+            <label class="s-label" for="s-country">Country or region</label>
+            <div class="country-wrap">
+              <select class="country-select" id="s-country" autocomplete="country" aria-required="true">
+                <option value="AU" selected>🇦🇺 Australia</option>
+                <option value="NZ">🇳🇿 New Zealand</option>
+                <option value="US">🇺🇸 United States</option>
+                <option value="GB">🇬🇧 United Kingdom</option>
+              </select>
+              <span class="country-arrow" aria-hidden="true">▾</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recovery note -->
+        <div class="recovery-note" role="note">
+          <strong>⚠ Session recovery:</strong> If payment succeeds but your session is interrupted, your entry credit is preserved and can be resumed within the competition window.
+        </div>
+
+        <!-- Pay button -->
+        <div class="pay-wrap">
+          <button class="btn-pay-stripe" onclick="location='06-payment-success.html'" aria-label="Pay A$2.99 securely with Stripe">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2L4 6v6c0 5.2 3.4 10 8 12 4.6-2 8-6.8 8-12V6l-8-4z" fill="rgba(255,255,255,.3)" stroke="white" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Pay A$2.99
+          </button>
+        </div>
+
+        <!-- Security badges -->
+        <div class="security-row" aria-label="Security information">
+          <div class="sec-badge"><span aria-hidden="true">🔒</span> TLS 1.3</div>
+          <div class="sec-badge"><span aria-hidden="true">✓</span> PCI DSS Level 1</div>
+          <div class="sec-badge"><span aria-hidden="true">🛡</span> 3D Secure</div>
+        </div>
+
+        <!-- Powered by Stripe -->
+        <div class="stripe-footer">
+          <span class="powered-text">Powered by</span>
+          <div class="stripe-wordmark" aria-label="Stripe">
+            <svg height="20" viewBox="0 0 60 25" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <text x="0" y="19" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="19" font-weight="700" fill="#635BFF" letter-spacing="-0.5">stripe</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Sheet footer -->
+        <div class="sheet-footer">
+          By confirming payment you agree to the Competition <a href="#" style="color:#635BFF;text-decoration:none;font-weight:600">Terms &amp; Conditions</a> and <a href="#" style="color:#635BFF;text-decoration:none;font-weight:600">Privacy Policy</a>.<br>
+          Entry fee processed into a designated competition trust account. A$2.99 AUD per entry.
+        </div>
+
+      </div><!-- /stripe-sheet -->
+    </main>
+  </div>
+
+  <div class="d-home" aria-hidden="true"><div class="d-bar"></div></div>
+</div>
+
+<div id="bsc-theme-bar" aria-label="Phone colour theme" role="group" style="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(30,20,80,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:9px 18px;z-index:9999;box-shadow:0 4px 24px rgba(0,0,0,.35);white-space:nowrap">
+    <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase;user-select:none">Theme</span>
+    <button class="tp" data-t="dpurple" title="Dark — Cosmic Purple" aria-label="Dark Cosmic Purple" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#08002E,#7C3AED);border:2px solid rgba(255,255,255,.5);cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="dnavy"   title="Dark — Midnight Navy"  aria-label="Dark Midnight Navy"  style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#000814,#0EA5E9);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="bviolet" title="Bright — Vivid Violet" aria-label="Bright Vivid Violet" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#5B21B6,#C084FC);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="bblue"   title="Bright — Electric Blue" aria-label="Bright Electric Blue" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1D4ED8,#93C5FD);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+  </div>
+  <script>
+  (function(){
+  var STARS='radial-gradient(1.5px 1.5px at 22px 82px,rgba(255,255,255,.65) 0%,transparent 100%),radial-gradient(2px 2px at 342px 95px,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 85px 220px,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(2px 2px at 280px 340px,rgba(255,255,255,.55) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45px 460px,rgba(255,255,255,.45) 0%,transparent 100%),radial-gradient(2px 2px at 340px 560px,rgba(255,255,255,.5) 0%,transparent 100%)';
+  var LAV='radial-gradient(ellipse at 50% -10%,#c7d2fe 0%,#eef2ff 55%,#f8faff 100%)';
+  var TH={
+    dpurple:{phone:STARS+',linear-gradient(180deg,#08002E 0%,#12006E 50%,#1A0A7C 100%)',bar:'rgba(8,0,46,.98)',hbg:'rgba(8,0,46,',cta:'linear-gradient(90deg,#F59E0B,#EA580C)',ctag:'rgba(234,88,12,.45)',acc:'#F59E0B'},
+    dnavy:  {phone:STARS+',linear-gradient(180deg,#000814 0%,#001845 50%,#001f5c 100%)',bar:'rgba(0,6,20,.98)', hbg:'rgba(0,6,20,',  cta:'linear-gradient(90deg,#0EA5E9,#0284C7)',ctag:'rgba(14,165,233,.4)',acc:'#0EA5E9'},
+    bviolet:{phone:STARS+',linear-gradient(180deg,#2E1065 0%,#5B21B6 50%,#6D28D9 100%)',bar:'rgba(46,16,101,.98)',hbg:'rgba(46,16,101,',cta:'linear-gradient(90deg,#F472B6,#EC4899)',ctag:'rgba(244,114,182,.4)',acc:'#F472B6'},
+    bblue:  {phone:STARS+',linear-gradient(180deg,#1e3a8a 0%,#2563EB 50%,#3B82F6 100%)',bar:'rgba(30,58,138,.98)',hbg:'rgba(30,58,138,',cta:'linear-gradient(90deg,#FCD34D,#FBBF24)',ctag:'rgba(252,211,77,.4)',acc:'#FCD34D'}
+  };
+  var BTNS='.btn-cta,.btn-primary,.btn-verify,.btn-pay,.btn-start,.btn-next,.btn-begin,.btn-submit,.btn-dash,.btn-add,.btn-home';
+  function applyTheme(id){
+    var t=TH[id]||TH.dpurple;
+    var el=document.getElementById('bsc-ts');
+    if(!el){el=document.createElement('style');el.id='bsc-ts';document.head.appendChild(el);}
+    el.textContent=
+      'body{background:'+LAV+'!important}'+
+      '.phone{background:'+t.phone+'!important}'+
+      '.d-status,.d-home{background:'+t.bar+'!important}'+
+      'header{background:'+t.hbg+'.94)!important}'+
+      'nav{background:'+t.hbg+'.96)!important}'+
+      BTNS+'{background:'+t.cta+'!important;box-shadow:0 8px 28px '+t.ctag+'!important}'+
+      '.btn-resume{background:'+t.cta+'!important;box-shadow:0 4px 14px '+t.ctag+'!important}'+
+      ':focus-visible{outline-color:'+t.acc+'!important}'+
+      '.skip{background:'+t.acc+'!important;color:#000!important}'+
+      '.nav-dot{background:'+t.acc+'!important}'+
+      '.c-dot.active{background:'+t.acc+'!important}'+
+      '.tab.active{background:'+t.acc+'!important}'+
+      '.hiw-num{background:linear-gradient(135deg,'+t.acc+'80,'+t.acc+'40)!important}';
+    document.querySelectorAll('.tp').forEach(function(b){
+      b.style.borderColor=b.dataset.t===id?'rgba(255,255,255,.9)':'transparent';
+      b.style.transform=b.dataset.t===id?'scale(1.2)':'scale(1)';
+    });
+    try{localStorage.setItem('bsc-theme',id);}catch(e){}
+  }
+  document.querySelectorAll('.tp').forEach(function(b){b.addEventListener('click',function(){applyTheme(b.dataset.t);});});
+  var saved;try{saved=localStorage.getItem('bsc-theme');}catch(e){}
+  applyTheme(saved||'dpurple');
+  })();
+  </script>
+</body></html>

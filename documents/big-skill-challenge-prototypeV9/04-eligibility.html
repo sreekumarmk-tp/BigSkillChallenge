@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>04 · Entry Eligibility — The Big Skill Challenge™</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(ellipse at 50% -10%,#c7d2fe 0%,#eef2ff 55%,#f8faff 100%);min-height:100vh;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:40px 20px 60px}
+.device-frame{width:390px;border-radius:54px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 0 0 10px #0d0d22,0 0 0 11px rgba(255,255,255,.08),0 50px 130px rgba(0,0,0,.95),0 0 80px rgba(100,40,200,.3);flex-shrink:0;position:relative}
+.d-status{height:50px;background:rgba(8,0,46,.98);display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 10px;position:relative;flex-shrink:0}
+.d-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#0d0d22;border-radius:0 0 22px 22px;display:flex;align-items:center;justify-content:center;gap:8px;z-index:10}
+.d-speaker{width:64px;height:5px;background:#1a1a30;border-radius:3px}.d-cam{width:12px;height:12px;background:#1a1a30;border-radius:50%;border:1.5px solid #252545}.d-time{font-size:15px;font-weight:600;color:#fff;letter-spacing:-.02em;line-height:1}.d-icons{display:flex;align-items:center;gap:5px}
+.phone{height:760px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:radial-gradient(1.5px 1.5px at 20px 80px,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(2px 2px at 342px 92px,rgba(255,255,255,.65) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 30px 268px,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(2px 2px at 368px 322px,rgba(255,255,255,.55) 0%,transparent 100%),linear-gradient(180deg,#08002E 0%,#12006E 50%,#1A0A7C 100%);display:flex;flex-direction:column;position:relative}
+.phone::-webkit-scrollbar{display:none}
+.d-home{height:34px;background:rgba(8,0,46,.98);display:flex;align-items:center;justify-content:center;flex-shrink:0}.d-bar{width:134px;height:5px;background:rgba(255,255,255,.28);border-radius:3px}
+.skip{position:absolute;top:-100px;left:12px;background:#F59E0B;color:#000;padding:8px 16px;border-radius:8px;font-weight:700;z-index:100;text-decoration:none}.skip:focus{top:8px}
+:focus-visible{outline:3px solid #F59E0B;outline-offset:2px;border-radius:4px}
+header{position:sticky;top:0;z-index:40;background:rgba(8,0,46,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);padding:10px 16px;display:flex;align-items:center;gap:12px}
+.back{width:40px;height:40px;background:rgba(255,255,255,.1);border:none;border-radius:12px;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center}
+.h-logo{height:22px;object-fit:contain}
+.step-bar{background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08);padding:10px 16px;display:flex;align-items:center;gap:6px;position:relative;z-index:1}
+.step{display:flex;align-items:center;gap:5px;flex:1}
+.step-n{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.step-line{flex:1;height:1px;background:rgba(255,255,255,.15)}
+main{flex:1;padding:20px 16px 20px;position:relative;z-index:1}
+h1{font-size:22px;font-weight:900;margin-bottom:8px;color:#fff}
+.desc{color:rgba(255,255,255,.55);font-size:14px;line-height:1.6;margin-bottom:20px}
+.chk-item{display:flex;align-items:flex-start;gap:14px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:18px;padding:14px;cursor:pointer;min-height:44px;margin-bottom:10px;transition:all .15s}
+.chk-item.on{border-color:#F59E0B;background:rgba(245,158,11,.1)}
+.chk-box{width:24px;height:24px;border:2px solid rgba(255,255,255,.25);border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s;margin-top:1px}
+.chk-item.on .chk-box{background:#F59E0B;border-color:#F59E0B}
+.chk-text{font-size:14px;line-height:1.6;color:rgba(255,255,255,.85);padding-top:2px}
+.status{border-radius:14px;padding:12px 16px;font-size:13px;line-height:1.5;margin-bottom:14px}
+.btn-primary{display:flex;align-items:center;justify-content:center;width:100%;background:linear-gradient(90deg,#F59E0B,#EA580C);color:#fff;font-weight:900;font-size:16px;border:none;border-radius:50px;padding:15px;cursor:pointer;min-height:52px;box-shadow:0 8px 28px rgba(234,88,12,.4)}
+.btn-primary:disabled{background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed;box-shadow:none}
+.info-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 16px;font-size:13px;color:rgba(180,210,255,.8);line-height:1.6;margin-top:14px}
+footer{background:rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.55);text-align:center;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="device-frame" role="region" aria-label="Mobile phone prototype">
+  <div class="d-status" aria-hidden="true">
+    <div class="d-notch"><div class="d-speaker"></div><div class="d-cam"></div></div>
+    <span class="d-time">9:41</span>
+    <div class="d-icons">
+      <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="white"/><rect x="4.5" y="4.5" width="3" height="6.5" rx="1" fill="white"/><rect x="9" y="2" width="3" height="9" rx="1" fill="white"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="white" opacity=".35"/></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="none"><path d="M0.5 3A10 10 0 0114.5 3" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".35"/><path d="M3 5.8A6.5 6.5 0 0112 5.8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M5.5 8.6A3.2 3.2 0 019.5 8.6" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="7.5" cy="10.5" r="0.9" fill="white"/></svg>
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="white" stroke-opacity=".6"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="white"/><path d="M22 4v4a2 2 0 000-4z" fill="white" opacity=".5"/></svg>
+    </div>
+  </div>
+  <div class="phone">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header role="banner">
+      <button class="back" onclick="history.back()" aria-label="Back">←</button>
+      <img src="prize-hero.png" alt="The Big Skill Challenge™" class="h-logo">
+    </header>
+    <div class="step-bar" role="navigation" aria-label="Registration steps">
+      <div class="step"><div class="step-n" style="background:#4ADE80;color:#000">✓</div></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-n" style="background:#4ADE80;color:#000">✓</div></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-n" style="background:#F59E0B;color:#000">3</div><span style="font-size:11px;font-weight:700;color:#F59E0B">Eligibility</span></div>
+      <div class="step-line"></div>
+      <div class="step"><div class="step-n" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.4)">4</div></div>
+    </div>
+    <main id="main">
+      <h1>Entry Eligibility</h1>
+      <p class="desc">Please confirm the following before proceeding to payment.</p>
+      <div role="group" aria-label="Eligibility confirmations — all required">
+        <div class="chk-item" id="c1" role="checkbox" aria-checked="false" tabindex="0" onclick="toggle(1)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggle(1)}">
+          <div class="chk-box" id="c1-box" aria-hidden="true"></div>
+          <span class="chk-text">I confirm I am eligible to enter this competition.</span>
+        </div>
+        <div class="chk-item" id="c2" role="checkbox" aria-checked="false" tabindex="0" onclick="toggle(2)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggle(2)}">
+          <div class="chk-box" id="c2-box" aria-hidden="true"></div>
+          <span class="chk-text">I understand a maximum of 10 entries is permitted per competition.</span>
+        </div>
+        <div class="chk-item" id="c3" role="checkbox" aria-checked="false" tabindex="0" onclick="toggle(3)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggle(3)}">
+          <div class="chk-box" id="c3-box" aria-hidden="true"></div>
+          <span class="chk-text">I acknowledge that this is a competition of skill, not chance.</span>
+        </div>
+      </div>
+      <div id="status-box" class="status" role="status" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:rgba(255,220,100,.9)">☑ Please confirm all 0 / 3 items above to continue.</div>
+      <button class="btn-primary" id="cont-btn" disabled aria-disabled="true" onclick="location='05-payment.html'">Continue to Payment →</button>
+      <div class="info-box"><strong style="color:rgba(255,255,255,.9)">ℹ️ Important:</strong> Payment is processed into a designated competition trust account. Entries are recorded upon successful quiz completion and creative submission.</div>
+    </main>
+    <footer role="contentinfo">Pure skill. One prize. One winner.</footer>
+  </div>
+  <div class="d-home" aria-hidden="true"><div class="d-bar"></div></div>
+</div>
+<script>
+const s={1:false,2:false,3:false};
+function toggle(n){s[n]=!s[n];const el=document.getElementById('c'+n);el.className='chk-item'+(s[n]?' on':'');el.setAttribute('aria-checked',s[n]);const box=document.getElementById('c'+n+'-box');box.innerHTML=s[n]?'<span style="color:#fff;font-size:13px;font-weight:900">✓</span>':'';const cnt=Object.values(s).filter(Boolean).length;const all=cnt===3;const sb=document.getElementById('status-box');if(all){sb.style.background='rgba(74,222,128,.1)';sb.style.border='1px solid rgba(74,222,128,.3)';sb.style.color='#4ADE80';sb.textContent='✓ All eligibility confirmations complete — proceed to payment.';}else{sb.style.background='rgba(245,158,11,.1)';sb.style.border='1px solid rgba(245,158,11,.3)';sb.style.color='rgba(255,220,100,.9)';sb.textContent='☑ Please confirm all '+cnt+' / 3 items above to continue.';}const btn=document.getElementById('cont-btn');btn.disabled=!all;btn.setAttribute('aria-disabled',String(!all));}
+</script>
+
+  <div id="bsc-theme-bar" aria-label="Phone colour theme" role="group" style="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(30,20,80,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:9px 18px;z-index:9999;box-shadow:0 4px 24px rgba(0,0,0,.35);white-space:nowrap">
+    <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase;user-select:none">Theme</span>
+    <button class="tp" data-t="dpurple" title="Dark — Cosmic Purple" aria-label="Dark Cosmic Purple" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#08002E,#7C3AED);border:2px solid rgba(255,255,255,.5);cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="dnavy"   title="Dark — Midnight Navy"  aria-label="Dark Midnight Navy"  style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#000814,#0EA5E9);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="bviolet" title="Bright — Vivid Violet" aria-label="Bright Vivid Violet" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#5B21B6,#C084FC);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="bblue"   title="Bright — Electric Blue" aria-label="Bright Electric Blue" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1D4ED8,#93C5FD);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+  </div>
+  <script>
+  (function(){
+  var STARS='radial-gradient(1.5px 1.5px at 22px 82px,rgba(255,255,255,.65) 0%,transparent 100%),radial-gradient(2px 2px at 342px 95px,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 85px 220px,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(2px 2px at 280px 340px,rgba(255,255,255,.55) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45px 460px,rgba(255,255,255,.45) 0%,transparent 100%),radial-gradient(2px 2px at 340px 560px,rgba(255,255,255,.5) 0%,transparent 100%)';
+  var LAV='radial-gradient(ellipse at 50% -10%,#c7d2fe 0%,#eef2ff 55%,#f8faff 100%)';
+  var TH={
+    dpurple:{phone:STARS+',linear-gradient(180deg,#08002E 0%,#12006E 50%,#1A0A7C 100%)',bar:'rgba(8,0,46,.98)',hbg:'rgba(8,0,46,',cta:'linear-gradient(90deg,#F59E0B,#EA580C)',ctag:'rgba(234,88,12,.45)',acc:'#F59E0B'},
+    dnavy:  {phone:STARS+',linear-gradient(180deg,#000814 0%,#001845 50%,#001f5c 100%)',bar:'rgba(0,6,20,.98)', hbg:'rgba(0,6,20,',  cta:'linear-gradient(90deg,#0EA5E9,#0284C7)',ctag:'rgba(14,165,233,.4)',acc:'#0EA5E9'},
+    bviolet:{phone:STARS+',linear-gradient(180deg,#2E1065 0%,#5B21B6 50%,#6D28D9 100%)',bar:'rgba(46,16,101,.98)',hbg:'rgba(46,16,101,',cta:'linear-gradient(90deg,#F472B6,#EC4899)',ctag:'rgba(244,114,182,.4)',acc:'#F472B6'},
+    bblue:  {phone:STARS+',linear-gradient(180deg,#1e3a8a 0%,#2563EB 50%,#3B82F6 100%)',bar:'rgba(30,58,138,.98)',hbg:'rgba(30,58,138,',cta:'linear-gradient(90deg,#FCD34D,#FBBF24)',ctag:'rgba(252,211,77,.4)',acc:'#FCD34D'}
+  };
+  var BTNS='.btn-cta,.btn-primary,.btn-verify,.btn-pay,.btn-start,.btn-next,.btn-begin,.btn-submit,.btn-dash,.btn-add,.btn-home';
+  function applyTheme(id){
+    var t=TH[id]||TH.dpurple;
+    var el=document.getElementById('bsc-ts');
+    if(!el){el=document.createElement('style');el.id='bsc-ts';document.head.appendChild(el);}
+    el.textContent=
+      'body{background:'+LAV+'!important}'+
+      '.phone{background:'+t.phone+'!important}'+
+      '.d-status,.d-home{background:'+t.bar+'!important}'+
+      'header{background:'+t.hbg+'.94)!important}'+
+      'nav{background:'+t.hbg+'.96)!important}'+
+      BTNS+'{background:'+t.cta+'!important;box-shadow:0 8px 28px '+t.ctag+'!important}'+
+      '.btn-resume{background:'+t.cta+'!important;box-shadow:0 4px 14px '+t.ctag+'!important}'+
+      ':focus-visible{outline-color:'+t.acc+'!important}'+
+      '.skip{background:'+t.acc+'!important;color:#000!important}'+
+      '.nav-dot{background:'+t.acc+'!important}'+
+      '.c-dot.active{background:'+t.acc+'!important}'+
+      '.tab.active{background:'+t.acc+'!important}'+
+      '.hiw-num{background:linear-gradient(135deg,'+t.acc+'80,'+t.acc+'40)!important}';
+    document.querySelectorAll('.tp').forEach(function(b){
+      b.style.borderColor=b.dataset.t===id?'rgba(255,255,255,.9)':'transparent';
+      b.style.transform=b.dataset.t===id?'scale(1.2)':'scale(1)';
+    });
+    try{localStorage.setItem('bsc-theme',id);}catch(e){}
+  }
+  document.querySelectorAll('.tp').forEach(function(b){b.addEventListener('click',function(){applyTheme(b.dataset.t);});});
+  var saved;try{saved=localStorage.getItem('bsc-theme');}catch(e){}
+  applyTheme(saved||'dpurple');
+  })();
+  </script>
+</body></html>

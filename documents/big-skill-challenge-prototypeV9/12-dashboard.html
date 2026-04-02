@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>12 · My Dashboard — The Big Skill Challenge™</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(ellipse at 50% -10%,#c7d2fe 0%,#eef2ff 55%,#f8faff 100%);min-height:100vh;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:40px 20px 60px}
+.device-frame{width:390px;border-radius:54px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 0 0 10px #0d0d22,0 0 0 11px rgba(255,255,255,.08),0 50px 130px rgba(0,0,0,.95),0 0 80px rgba(100,40,200,.3);flex-shrink:0;position:relative}
+.d-status{height:50px;background:rgba(8,0,46,.98);display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 10px;position:relative;flex-shrink:0}
+.d-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#0d0d22;border-radius:0 0 22px 22px;display:flex;align-items:center;justify-content:center;gap:8px;z-index:10}
+.d-speaker{width:64px;height:5px;background:#1a1a30;border-radius:3px}.d-cam{width:12px;height:12px;background:#1a1a30;border-radius:50%;border:1.5px solid #252545}.d-time{font-size:15px;font-weight:600;color:#fff;letter-spacing:-.02em;line-height:1}.d-icons{display:flex;align-items:center;gap:5px}
+.phone{height:760px;overflow-y:hidden;overflow-x:hidden;scrollbar-width:none;background:radial-gradient(1.5px 1.5px at 20px 130px,rgba(255,255,255,.55) 0%,transparent 100%),radial-gradient(2px 2px at 342px 160px,rgba(255,255,255,.5) 0%,transparent 100%),linear-gradient(180deg,#08002E 0%,#12006E 50%,#1A0A7C 100%);display:flex;flex-direction:column;position:relative}
+.phone::-webkit-scrollbar{display:none}
+.d-home{height:34px;background:rgba(8,0,46,.98);display:flex;align-items:center;justify-content:center;flex-shrink:0}.d-bar{width:134px;height:5px;background:rgba(255,255,255,.28);border-radius:3px}
+.skip{position:absolute;top:-100px;left:12px;background:#F59E0B;color:#000;padding:8px 16px;border-radius:8px;font-weight:700;z-index:100;text-decoration:none}.skip:focus{top:8px}
+:focus-visible{outline:3px solid #F59E0B;outline-offset:2px;border-radius:4px}
+button,a{min-height:44px}
+header{background:rgba(8,0,46,.95);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.h-logo{height:22px;object-fit:contain}
+.user-label{font-size:12px;color:rgba(255,255,255,.4)}
+.tab-panel{display:none;flex:1;overflow-y:auto;padding:14px 16px;position:relative;z-index:1}
+.tab-panel.active{display:block}
+.resume-banner{display:flex;align-items:center;gap:12px;background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.35);border-radius:18px;padding:13px 14px;margin-bottom:14px}
+.btn-resume{background:linear-gradient(90deg,#F59E0B,#EA580C);color:#fff;border:none;border-radius:12px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;min-height:40px;flex-shrink:0;box-shadow:0 4px 14px rgba(234,88,12,.4)}
+.shortlist-banner{display:flex;align-items:center;gap:12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:18px;padding:14px;margin-bottom:14px;cursor:pointer;text-decoration:none;min-height:44px}
+.sl-icon{width:42px;height:42px;background:linear-gradient(135deg,#F59E0B,#EA580C);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 14px rgba(234,88,12,.35)}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 8px;text-align:center}
+.stat-n{font-size:26px;font-weight:900;color:#fff}
+.stat-l{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px}
+.countdown{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:14px;margin-bottom:14px}
+.cd-label{font-size:12px;font-weight:700;color:rgba(255,255,255,.45);margin-bottom:8px}
+.cd-row{display:flex;gap:8px}
+.cd-unit{flex:1;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.3);border-radius:12px;padding:9px 4px;text-align:center}
+.cd-n{font-size:20px;font-weight:900;color:#C4B5FD;font-variant-numeric:tabular-nums}
+.cd-l{font-size:10px;color:rgba(196,181,253,.6);font-weight:600}
+.btn-add{display:flex;align-items:center;justify-content:center;width:100%;background:linear-gradient(90deg,#F59E0B,#EA580C);color:#fff;font-weight:900;font-size:15px;border:none;border-radius:50px;padding:15px;cursor:pointer;min-height:52px;box-shadow:0 8px 28px rgba(234,88,12,.4);margin-bottom:6px}
+.entry-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:13px 14px;margin-bottom:10px}
+.e-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.e-status{font-size:12px;font-weight:700;border-radius:99px;padding:3px 10px;display:inline-flex;align-items:center;gap:4px}
+.e-ref{font-size:13px;color:rgba(255,255,255,.45);font-family:monospace}
+.e-sub{font-size:12px;color:rgba(255,255,255,.35);margin-top:4px}
+.action-group{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden}
+.action-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.07);cursor:pointer;min-height:50px;text-decoration:none;color:#fff}
+.action-row:last-child{border-bottom:none}
+.action-row:hover,.action-row:focus{background:rgba(255,255,255,.06)}
+.chevron{color:rgba(255,255,255,.25);font-size:16px;margin-left:auto}
+.btn-so{width:100%;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);border-radius:16px;padding:14px;color:#F87171;font-weight:700;font-size:15px;cursor:pointer;min-height:50px;margin-top:14px}
+nav{background:rgba(8,0,46,.95);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,.08);padding:6px 14px 10px;flex-shrink:0}
+.nav-row{display:flex;justify-content:space-around}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:6px 4px;border-radius:10px;min-height:50px}
+.nav-btn:hover,.nav-btn:focus{background:rgba(255,255,255,.07)}
+.nav-icon{font-size:20px}.nav-label{font-size:11px;font-weight:600}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:#F59E0B;margin-top:1px}
+footer{background:rgba(0,0,0,.45);border-top:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.45);text-align:center;padding:8px 16px;font-size:11px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+.avatar-circle{width:48px;height:48px;background:linear-gradient(135deg,#7C3AED,#F59E0B);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:900;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="device-frame" role="region" aria-label="Mobile phone prototype">
+  <div class="d-status" aria-hidden="true">
+    <div class="d-notch"><div class="d-speaker"></div><div class="d-cam"></div></div>
+    <span class="d-time">9:41</span>
+    <div class="d-icons">
+      <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="white"/><rect x="4.5" y="4.5" width="3" height="6.5" rx="1" fill="white"/><rect x="9" y="2" width="3" height="9" rx="1" fill="white"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="white" opacity=".35"/></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="none"><path d="M0.5 3A10 10 0 0114.5 3" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity=".35"/><path d="M3 5.8A6.5 6.5 0 0112 5.8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M5.5 8.6A3.2 3.2 0 019.5 8.6" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="7.5" cy="10.5" r="0.9" fill="white"/></svg>
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="white" stroke-opacity=".6"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="white"/><path d="M22 4v4a2 2 0 000-4z" fill="white" opacity=".5"/></svg>
+    </div>
+  </div>
+  <div class="phone">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header role="banner">
+      <img src="prize-hero.png" alt="The Big Skill Challenge™" class="h-logo">
+      <span class="user-label">Jordan Davies</span>
+    </header>
+    <div id="panel-dashboard" class="tab-panel active" role="tabpanel" id="main">
+      <div class="resume-banner" role="alert">
+        <div style="flex:1"><div style="font-weight:700;font-size:14px;color:#F59E0B">Incomplete Entry</div><div style="font-size:12px;color:rgba(245,158,11,.7);line-height:1.5;margin-top:2px">Payment received — your quiz is waiting.</div></div>
+        <button class="btn-resume" onclick="location='07-quiz.html'">Resume</button>
+      </div>
+      <a href="13-result.html" class="shortlist-banner" role="link" aria-label="View your shortlisted entry">
+        <div class="sl-icon" aria-hidden="true">🏆</div>
+        <div style="flex:1"><div style="font-weight:800;font-size:15px;color:#fff">You're Shortlisted!</div><div style="font-size:13px;color:rgba(255,255,255,.5)">Entry #TBSC-2026-004521 · Top 0.01%</div></div>
+        <span style="color:#F59E0B;font-size:20px">›</span>
+      </a>
+      <div class="stats-row" role="list" aria-label="Entry statistics">
+        <div class="stat-card" role="listitem"><div class="stat-n">4</div><div class="stat-l">Entries Used</div></div>
+        <div class="stat-card" role="listitem"><div class="stat-n">6</div><div class="stat-l">Slots Left</div></div>
+        <div class="stat-card" role="listitem"><div class="stat-n" style="color:#4ADE80">1</div><div class="stat-l">Shortlisted</div></div>
+      </div>
+      <div class="countdown" aria-label="Competition countdown">
+        <div class="cd-label">Competition Closes In</div>
+        <div class="cd-row" id="cd-row">
+          <div class="cd-unit"><div class="cd-n" id="cd-d">89</div><div class="cd-l">Days</div></div>
+          <div class="cd-unit"><div class="cd-n" id="cd-h">14</div><div class="cd-l">Hours</div></div>
+          <div class="cd-unit"><div class="cd-n" id="cd-m">22</div><div class="cd-l">Mins</div></div>
+          <div class="cd-unit"><div class="cd-n" id="cd-s">41</div><div class="cd-l">Secs</div></div>
+        </div>
+      </div>
+      <button class="btn-add" onclick="location='05-payment.html'">Add Another Entry →</button>
+      <p style="text-align:center;font-size:12px;color:rgba(255,255,255,.3)">4 of 10 entries used · 6 remaining</p>
+    </div>
+    <div id="panel-entries" class="tab-panel" role="tabpanel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h2 style="font-size:18px;font-weight:800;color:#fff">My Entries</h2><span style="font-size:12px;color:rgba(255,255,255,.35)">4 of 10 used</span></div>
+      <div class="entry-card"><div class="e-head"><span class="e-status" style="background:rgba(245,158,11,.15);color:#F59E0B;border:1px solid rgba(245,158,11,.3)">⭐ Shortlisted</span><span style="font-size:12px;color:rgba(255,255,255,.35)">14 Mar 2026</span></div><div class="e-ref">TBSC-2026-004521</div><div class="e-sub">25 words submitted</div></div>
+      <div class="entry-card"><div class="e-head"><span class="e-status" style="background:rgba(74,222,128,.1);color:#4ADE80;border:1px solid rgba(74,222,128,.25)">✓ Submitted</span><span style="font-size:12px;color:rgba(255,255,255,.35)">12 Mar 2026</span></div><div class="e-ref">TBSC-2026-004486</div><div class="e-sub">25 words submitted</div></div>
+      <div class="entry-card"><div class="e-head"><span class="e-status" style="background:rgba(248,113,113,.1);color:#F87171;border:1px solid rgba(248,113,113,.25)">✗ Quiz Failed</span><span style="font-size:12px;color:rgba(255,255,255,.35)">10 Mar 2026</span></div><div class="e-ref">TBSC-2026-004412</div></div>
+      <div class="entry-card"><div class="e-head"><span class="e-status" style="background:rgba(74,222,128,.1);color:#4ADE80;border:1px solid rgba(74,222,128,.25)">✓ Submitted</span><span style="font-size:12px;color:rgba(255,255,255,.35)">9 Mar 2026</span></div><div class="e-ref">TBSC-2026-004390</div><div class="e-sub">25 words submitted</div></div>
+    </div>
+    <div id="panel-account" class="tab-panel" role="tabpanel">
+      <div style="display:flex;flex-direction:column;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:18px">
+        <div class="avatar-circle" aria-label="Initials JD">JD</div>
+        <div style="font-weight:800;font-size:20px;color:#fff">Jordan Davies</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.35);margin-top:3px">Member since March 2026</div>
+      </div>
+      <div class="action-group" style="margin-bottom:4px">
+        <a href="#" class="action-row"><span style="width:24px;text-align:center;font-size:18px">✉</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#fff">Email</div><div style="font-size:12px;color:rgba(255,255,255,.4)">jordan@example.com</div></div></a>
+        <a href="#" class="action-row"><span style="width:24px;text-align:center;font-size:18px">📍</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#fff">Country</div><div style="font-size:12px;color:rgba(255,255,255,.4)">United Kingdom</div></div></a>
+        <a href="#" class="action-row"><span style="width:24px;text-align:center;font-size:18px">⚙</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#fff">Edit Profile</div></div><span class="chevron">›</span></a>
+        <a href="#" class="action-row"><span style="width:24px;text-align:center;font-size:18px">📄</span><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#fff">Terms &amp; Privacy</div></div><span class="chevron">›</span></a>
+      </div>
+      <button class="btn-so" onclick="location='01-landing.html'">Sign Out</button>
+    </div>
+    <footer role="contentinfo">Pure skill. One prize. One winner.</footer>
+    <nav aria-label="Main navigation">
+      <div class="nav-row" role="tablist">
+        <button class="nav-btn" id="nav-dash" role="tab" aria-selected="true" onclick="showTab('dashboard')" style="color:#F59E0B"><span class="nav-icon">🧠</span><span class="nav-label">Dashboard</span><span class="nav-dot"></span></button>
+        <button class="nav-btn" id="nav-ent" role="tab" aria-selected="false" onclick="showTab('entries')" style="color:rgba(255,255,255,.35)"><span class="nav-icon">🏆</span><span class="nav-label">My Entries</span></button>
+        <button class="nav-btn" id="nav-acc" role="tab" aria-selected="false" onclick="showTab('account')" style="color:rgba(255,255,255,.35)"><span class="nav-icon">👤</span><span class="nav-label">Account</span></button>
+      </div>
+    </nav>
+  </div>
+  <div class="d-home" aria-hidden="true"><div class="d-bar"></div></div>
+</div>
+<script>
+const panels={dashboard:'panel-dashboard',entries:'panel-entries',account:'panel-account'};
+const navs={dashboard:'nav-dash',entries:'nav-ent',account:'nav-acc'};
+function showTab(id){Object.keys(panels).forEach(k=>{document.getElementById(panels[k]).className='tab-panel'+(k===id?' active':'');const n=document.getElementById(navs[k]);n.style.color=k===id?'#F59E0B':'rgba(255,255,255,.35)';n.setAttribute('aria-selected',k===id);const dot=n.querySelector('.nav-dot');if(dot)dot.remove();if(k===id){const d=document.createElement('span');d.className='nav-dot';n.appendChild(d);}});}
+(function(){var end=new Date();end.setDate(end.getDate()+89);end.setHours(end.getHours()+14);end.setMinutes(end.getMinutes()+22);end.setSeconds(end.getSeconds()+41);function pad(n){return String(n).padStart(2,'0')}function tick(){var diff=end-Date.now();if(diff<0)diff=0;var d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);document.getElementById('cd-d').textContent=pad(d);document.getElementById('cd-h').textContent=pad(h);document.getElementById('cd-m').textContent=pad(m);document.getElementById('cd-s').textContent=pad(s);}tick();setInterval(tick,1000);})();
+</script>
+
+  <div id="bsc-theme-bar" aria-label="Phone colour theme" role="group" style="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(30,20,80,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:9px 18px;z-index:9999;box-shadow:0 4px 24px rgba(0,0,0,.35);white-space:nowrap">
+    <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase;user-select:none">Theme</span>
+    <button class="tp" data-t="dpurple" title="Dark — Cosmic Purple" aria-label="Dark Cosmic Purple" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#08002E,#7C3AED);border:2px solid rgba(255,255,255,.5);cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="dnavy"   title="Dark — Midnight Navy"  aria-label="Dark Midnight Navy"  style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#000814,#0EA5E9);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="bviolet" title="Bright — Vivid Violet" aria-label="Bright Vivid Violet" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#5B21B6,#C084FC);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+    <button class="tp" data-t="bblue"   title="Bright — Electric Blue" aria-label="Bright Electric Blue" style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1D4ED8,#93C5FD);border:2px solid transparent;cursor:pointer;padding:0;flex-shrink:0;transition:transform .15s,border-color .15s"></button>
+  </div>
+  <script>
+  (function(){
+  var STARS='radial-gradient(1.5px 1.5px at 22px 82px,rgba(255,255,255,.65) 0%,transparent 100%),radial-gradient(2px 2px at 342px 95px,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 85px 220px,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(2px 2px at 280px 340px,rgba(255,255,255,.55) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45px 460px,rgba(255,255,255,.45) 0%,transparent 100%),radial-gradient(2px 2px at 340px 560px,rgba(255,255,255,.5) 0%,transparent 100%)';
+  var LAV='radial-gradient(ellipse at 50% -10%,#c7d2fe 0%,#eef2ff 55%,#f8faff 100%)';
+  var TH={
+    dpurple:{phone:STARS+',linear-gradient(180deg,#08002E 0%,#12006E 50%,#1A0A7C 100%)',bar:'rgba(8,0,46,.98)',hbg:'rgba(8,0,46,',cta:'linear-gradient(90deg,#F59E0B,#EA580C)',ctag:'rgba(234,88,12,.45)',acc:'#F59E0B'},
+    dnavy:  {phone:STARS+',linear-gradient(180deg,#000814 0%,#001845 50%,#001f5c 100%)',bar:'rgba(0,6,20,.98)', hbg:'rgba(0,6,20,',  cta:'linear-gradient(90deg,#0EA5E9,#0284C7)',ctag:'rgba(14,165,233,.4)',acc:'#0EA5E9'},
+    bviolet:{phone:STARS+',linear-gradient(180deg,#2E1065 0%,#5B21B6 50%,#6D28D9 100%)',bar:'rgba(46,16,101,.98)',hbg:'rgba(46,16,101,',cta:'linear-gradient(90deg,#F472B6,#EC4899)',ctag:'rgba(244,114,182,.4)',acc:'#F472B6'},
+    bblue:  {phone:STARS+',linear-gradient(180deg,#1e3a8a 0%,#2563EB 50%,#3B82F6 100%)',bar:'rgba(30,58,138,.98)',hbg:'rgba(30,58,138,',cta:'linear-gradient(90deg,#FCD34D,#FBBF24)',ctag:'rgba(252,211,77,.4)',acc:'#FCD34D'}
+  };
+  var BTNS='.btn-cta,.btn-primary,.btn-verify,.btn-pay,.btn-start,.btn-next,.btn-begin,.btn-submit,.btn-dash,.btn-add,.btn-home';
+  function applyTheme(id){
+    var t=TH[id]||TH.dpurple;
+    var el=document.getElementById('bsc-ts');
+    if(!el){el=document.createElement('style');el.id='bsc-ts';document.head.appendChild(el);}
+    el.textContent=
+      'body{background:'+LAV+'!important}'+
+      '.phone{background:'+t.phone+'!important}'+
+      '.d-status,.d-home{background:'+t.bar+'!important}'+
+      'header{background:'+t.hbg+'.94)!important}'+
+      'nav{background:'+t.hbg+'.96)!important}'+
+      BTNS+'{background:'+t.cta+'!important;box-shadow:0 8px 28px '+t.ctag+'!important}'+
+      '.btn-resume{background:'+t.cta+'!important;box-shadow:0 4px 14px '+t.ctag+'!important}'+
+      ':focus-visible{outline-color:'+t.acc+'!important}'+
+      '.skip{background:'+t.acc+'!important;color:#000!important}'+
+      '.nav-dot{background:'+t.acc+'!important}'+
+      '.c-dot.active{background:'+t.acc+'!important}'+
+      '.tab.active{background:'+t.acc+'!important}'+
+      '.hiw-num{background:linear-gradient(135deg,'+t.acc+'80,'+t.acc+'40)!important}';
+    document.querySelectorAll('.tp').forEach(function(b){
+      b.style.borderColor=b.dataset.t===id?'rgba(255,255,255,.9)':'transparent';
+      b.style.transform=b.dataset.t===id?'scale(1.2)':'scale(1)';
+    });
+    try{localStorage.setItem('bsc-theme',id);}catch(e){}
+  }
+  document.querySelectorAll('.tp').forEach(function(b){b.addEventListener('click',function(){applyTheme(b.dataset.t);});});
+  var saved;try{saved=localStorage.getItem('bsc-theme');}catch(e){}
+  applyTheme(saved||'dpurple');
+  })();
+  </script>
+</body></html>

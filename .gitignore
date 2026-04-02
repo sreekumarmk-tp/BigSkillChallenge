@@ -1,0 +1,168 @@
+# ==============================
+# OS
+# ==============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ==============================
+# IDEs and Editors
+# ==============================
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==============================
+# Environment Variables
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+# Node / Javascript
+# ==============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+# (Optional: uncomment depending on if you want to track lockfiles, usually you do keep lockfiles but sometimes you ignore them in monorepos)
+# !package-lock.json
+# !yarn.lock
+
+# ==============================
+# Python
+# ==============================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.sved
+.nyc_output/
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# mypy, type checkers
+.mypy_cache/
+.pyre/
+.typeguard/
+
+# ==============================
+# React Native / Mobile
+# ==============================
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native builder processes
+.expo-shared/
+
+# Android
+android/build/
+android/.gradle
+android/app/build/
+android/local.properties
+*.iml
+.idea/modules.xml
+.idea/workspace.xml
+.idea/caches/build_file_checksums.ser
+.idea/libraries/
+.idea/assetWizardSettings.xml
+
+# iOS
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+
+# keystores
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# ==============================
+# Misc Temporary
+# ==============================
+tmp/
+temp/
+*.log
+coverage/
