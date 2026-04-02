@@ -7,15 +7,21 @@ import GradientBackground from '../components/GradientBackground';
 import { COLORS, SIZES, GLOBAL_STYLES } from '../theme/constants';
 
 const AuthScreen = ({ navigation }) => {
-  const { login } = useContext(AppContext);
+  const { login, register } = useContext(AppContext);
   const [isRegister, setIsRegister] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleAuth = async () => {
-    if (!email || !password) {
+    if (isRegister && (!email || !password || !firstName || !lastName)) {
+      setError('Please fill in all fields.');
+      return;
+    }
+    if (!isRegister && (!email || !password)) {
       setError('Please fill in all fields.');
       return;
     }
@@ -28,10 +34,7 @@ const AuthScreen = ({ navigation }) => {
     setError('');
     try {
       if (isRegister) {
-        await api.post('/auth/register', {
-          email,
-          password
-        });
+        await register(email, password, firstName, lastName);
         // Transition to Email Verify
         navigation.navigate('EmailVerify');
       } else {
@@ -55,6 +58,24 @@ const AuthScreen = ({ navigation }) => {
           </Text>
 
           <View style={GLOBAL_STYLES.glassCard}>
+            {isRegister && (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="First Name"
+                  placeholderTextColor={COLORS.text.secondary}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Last Name"
+                  placeholderTextColor={COLORS.text.secondary}
+                  value={lastName}
+                  onChangeText={setLastName}
+                />
+              </>
+            )}
             <TextInput
               style={styles.input}
               placeholder="Email address"

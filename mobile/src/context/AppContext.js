@@ -62,6 +62,27 @@ export const AppProvider = ({ children }) => {
     setIsLoading(false);
   };
 
+  const register = async (email, password, firstName, lastName) => {
+    setIsLoading(true);
+    try {
+      const response = await api.post('/auth/register', {
+          email,
+          password,
+          first_name: firstName,
+          last_name: lastName
+      });
+      const token = response.data.access_token;
+      setUserToken(token);
+      await AsyncStorage.setItem('userToken', token);
+      return response.data;
+    } catch (e) {
+      console.log(`register error ${e}`);
+      throw e;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     setIsLoading(true);
     setUserToken(null);
@@ -89,6 +110,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider
       value={{
         login,
+        register,
         logout,
         processPayment,
         isLoading,

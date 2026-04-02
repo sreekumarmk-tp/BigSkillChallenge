@@ -12,6 +12,7 @@ class User(Base):
     email = Column(String(100), unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    otp = Column(String(6), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     payments = relationship("Payment", back_populates="user")

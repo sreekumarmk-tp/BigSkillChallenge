@@ -23,6 +23,8 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
+    access_token: Optional[str] = None
+    token_type: Optional[str] = None
     
     class Config:
         from_attributes = True
