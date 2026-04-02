@@ -22,6 +22,10 @@ The backend runs on **Python 3.10+** and uses **Docker Compose** to manage the P
 # Navigate to the backend directory
 cd backend
 
+# Create your .env file
+cp .env.example .env
+# Edit .env and add your details (especially SMTP for OTP emails)
+
 # Start the PostgreSQL database using Docker
 docker-compose up -d
 
@@ -29,7 +33,7 @@ docker-compose up -d
 python3 -m venv venv
 source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 
-# Install dependencies
+# Install dependencies (including aiosmtplib for emails)
 pip install -r requirements.txt
 
 # Start the FastAPI server (auto-creates DB tables on launch)
@@ -61,6 +65,7 @@ npx expo start
 Based on the core prototypes, the MVP contains the following foundational scaffolding:
 
 - **Authentication System**: Secure JWT-based user registration and login implementation mimicking the HTML tabs.
+- **OTP Verification**: Email-based verification flow (SMTP) to ensure user authenticity during registration.
 - **Competition Flow**: Secure API structure outlining eligibility checks and active entry points.
 - **Mock Payments**: Payment integration layer ready to be substituted with Stripe / Razorpay logic upon production launch.
 - **25-Word AI Submission**:
@@ -71,8 +76,9 @@ Based on the core prototypes, the MVP contains the following foundational scaffo
 
 ## 📋 Completed Development
 
+- [x] Implement SMTP-based OTP email verification.
 - [x] Complete robust Redux / Context API State management in React Native for active cross-screen memory.
 - [x] Connect absolute production API keys inside the backend `.env`.
 - [x] Map the exact countdown interval logic mapping to the explicit 30-second localized quiz states (`07-quiz.html`).
 - [x] Implement Paste-Blocking behavior hooks purely natively on the React `SubmissionScreen`.
-
+- [x] Fix user registration to correctly save `first_name` and `last_name`.
