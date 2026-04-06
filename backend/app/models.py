@@ -12,6 +12,7 @@ class User(Base):
     email = Column(String(100), unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
     otp = Column(String(6), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
@@ -52,6 +53,7 @@ class Entry(Base):
     competition_id = Column(Integer, ForeignKey("competitions.id"))
     content = Column(Text) # The 25 word response
     status = Column(String(20), default="submitted") # submitted, scored
+    is_winner = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="entries")

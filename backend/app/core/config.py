@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     
+    # Admin Panel
+    ADMIN_EMAIL: str = "admin@bigskillchallenge.com"
+    ADMIN_PASSWORD: str = "admin123_change_me"
+    
     # DB settings
     POSTGRES_USER: str = "bigskill"
     POSTGRES_PASSWORD: str = "bigskill_password"

@@ -4,6 +4,8 @@ from app.core.config import settings
 from app.api import auth, competition, payment, submission, quiz
 from app.database import engine
 from app import models
+from app.admin_config import setup_admin
+from starlette.middleware.sessions import SessionMiddleware
 
 # Create tables
 try:
@@ -108,8 +110,29 @@ def startup_event():
         ]
         db.bulk_save_objects(questions)
         db.commit()
+
+        # Seed admin user
+        from app.core.security import get_password_hash
+        admin_user = db.query(models.User).filter(models.User.email == settings.ADMIN_EMAIL).first()
+        if not admin_user:
+            new_admin = models.User(
+                first_name="Admin",
+                last_name="System",
+                email=settings.ADMIN_EMAIL,
+                hashed_password=get_password_hash(settings.ADMIN_PASSWORD),
+                is_active=True,
+                is_admin=True
+            )
+            db.add(new_admin)
+            db.commit()
     finally:
         db.close()
+
+# Add Session Middleware for Admin Auth
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+
+# Setup Admin Panel
+setup_admin(app)
 
 # Set all CORS enabled origins
 app.add_middleware(
