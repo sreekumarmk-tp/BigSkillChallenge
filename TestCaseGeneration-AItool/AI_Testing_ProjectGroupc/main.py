@@ -67,33 +67,35 @@ modules = [
 
 
 #  Generate test cases per module
-def generate_test_cases_for_module(srs, module, start_index):
+def generate_test_cases_for_module(srs, module):
     prompt = f"""
     You are a senior QA engineer.
 
-    Generate EXACTLY 12 test cases for module: {module}
+    Generate test cases ONLY for module: {module}
 
-    INCLUDE:
-    - Positive
-    - Negative
-    - Edge
-    - Boundary
+    REQUIREMENTS:
+    - Generate around 12 test cases
+    - Include Positive, Negative, Edge, Boundary
 
-    STRICT FORMAT:
-    TCXX | Type | Module | Steps | ExpectedResult
+    STRICT FORMAT (VERY IMPORTANT):
+    Type | Module | Steps | ExpectedResult
 
     RULES:
-    - Start from TC{start_index}
-    - Continue sequentially (TC{start_index+1}, TC{start_index+2}...)
-    - Exactly 12 test cases
-    - No skipping numbers
-    - No explanation
+    - DO NOT include TestCaseID
+    - DO NOT include words like "Steps:" or "ExpectedResult:"
+    - Keep sentences short and clear
     - No headings
+    - No explanation
+
+    Example:
+    Positive | Payment | Enter valid card details | Payment successful
+    Negative | Payment | Enter invalid card number | Error message shown
 
     SRS:
     {srs}
     """
     return llm.invoke(prompt)
+
 
 #  Save to Excel
 def save_to_excel(test_cases_text):
@@ -105,16 +107,26 @@ def save_to_excel(test_cases_text):
 
     lines = test_cases_text.split("\n")
 
+    tc_counter = 1
+
     for line in lines:
         if "|" in line:
-            parts = line.split("|")
-            parts = [p.strip() for p in parts]
+            parts = [p.strip() for p in line.split("|")]
 
-            if len(parts) == 5:
-                ws.append(parts)
+            if len(parts) >= 4:
+                tc_id = f"TC{tc_counter:03}"
+
+                type_ = parts[0]
+                module = parts[1]
+                steps = parts[2]
+                expected = parts[3]
+
+                ws.append([tc_id, type_, module, steps, expected])
+
+                tc_counter += 1
 
     wb.save("test_cases.xlsx")
-    print(" Excel file saved as test_cases.xlsx")
+    print(" Clean Excel saved")
 
 
 #  MAIN
@@ -123,13 +135,15 @@ if __name__ == "__main__":
     print("🔄 Generating test cases module by module...\n")
 
     all_test_cases = ""
-    counter = 1
 
     for module in modules:
         print(f"👉 Generating for {module}...")
-
-        result = generate_test_cases_for_module(srs_text, module, counter)
-
+        result = generate_test_cases_for_module(srs_text, module)
         all_test_cases += result + "\n"
 
-        counter += 12  # move to next block
+     #   counter += 12   # because we generate 12 test cases per module
+
+    print("\n=== FINAL TEST CASES ===")
+    print(all_test_cases)
+
+    save_to_excel(all_test_cases)

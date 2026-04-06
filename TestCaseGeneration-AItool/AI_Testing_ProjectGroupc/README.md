@@ -1,45 +1,41 @@
-AI Testing ProjectGroupc
-========================
+# AI Testing ProjectGroupc
 
+A small Python utility that uses an Ollama-backed LLM (via the `langchain_community` Ollama wrapper) to generate QA test cases from an SRS text and write them into an Excel workbook (`test_cases.xlsx`) using `openpyxl`.
 
-Overview
---------
-This repository contains a small Python script, `main.py`, which uses an Ollama-backed LLM (via the `langchain_community` Ollama wrapper) to generate QA test cases from an SRS text and writes them into an Excel workbook (`test_cases.xlsx`) using `openpyxl`.
-
-The script generates test cases module-by-module (Authentication, Payment, Quiz, Submission, AI Scoring, API, Database, Security, Error Handling) and saves them in a single Excel file.
-
-This README explains prerequisites, installation steps (Windows / cmd.exe), how to run the script, expected outputs, and common troubleshooting steps.
-
-
-Quick checklist
----------------
-- Python 3.8+ installed
-- Ollama engine installed and models available (or Ollama host configured)
-- Create & activate a virtual environment
-- Install Python dependencies from `requirements.txt`
-- Run `main.py` to produce `test_cases.xlsx`
-
-
-Prerequisites
--------------
-- Windows with cmd.exe (instructions below use cmd syntax)
-- Python 3.8 or newer (3.10+ recommended)
-- Git (optional)
-- Ollama: the script uses the Ollama LLM client. You must have an Ollama service available locally (recommended) or accessible via an endpoint. See "Ollama notes" below.
-
-
-Files of interest
------------------
-- `main.py` — main script that generates test cases and writes `test_cases.xlsx`.
+This repository includes:
+- `main.py` — script that generates test cases module-by-module and writes them to Excel.
+- `requirements.txt` — Python dependencies.
 - `test_cases.xlsx` — generated output (created after running the script).
-- `requirements.txt` — Python dependencies (created alongside this README).
 
+---
 
-Installation (Windows, cmd.exe)
--------------------------------
-1. Open a command prompt (cmd.exe).
+## Quick summary
 
-2. Create and activate a virtual environment (recommended):
+The script reads an in-file SRS block, prompts an LLM (Ollama) to generate test cases for each module, parses the LLM output (pipe-delimited lines) and saves the results to `test_cases.xlsx` with columns: `TestCaseID`, `Type`, `Module`, `Steps`, `ExpectedResult`.
+
+This README covers setup on Windows (cmd.exe), configuring Ollama, running the script, and troubleshooting tips.
+
+---
+
+## Requirements
+
+- Windows (instructions assume cmd.exe)
+- Python 3.8+ (3.10+ recommended)
+- Ollama service available (local or remote) and at least one compatible model (e.g., `phi3` or `mistral`)
+- A virtual environment (recommended)
+- Network access if you use a remote Ollama host
+
+Dependencies (see `requirements.txt`) include:
+- langchain-community (Ollama wrapper)
+- openpyxl
+
+---
+
+## Installation (Windows — cmd.exe)
+
+1. Open a command prompt.
+
+2. Create and activate a virtual environment:
 
 ```cmd
 python -m venv .venv
@@ -53,101 +49,122 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+If `requirements.txt` is missing or you want to install manually:
 
-Ollama notes (important)
-------------------------
-The script uses `langchain_community.llms.Ollama`. That wrapper expects an Ollama host/service where models are available. There are two typical ways to satisfy this:
-
-1. Install Ollama locally (recommended):
-   - Install the Ollama app/CLI from https://ollama.ai and follow their instructions for running the Ollama service and installing a model (for example `phi3` or `mistral`).
-   - Ensure the Ollama daemon is running locally and the model name in `main.py` (currently `phi3`) is available.
-
-2. Use a remote Ollama endpoint (advanced):
-   - Configure the appropriate environment variables or connection settings the `langchain_community` Ollama wrapper supports (consult the wrapper docs). You may need to set `OLLAMA_HOST` or equivalent.
-
-Common issues:
-- If the client cannot find the model, you will see a connection or model-not-found error.
-- If you don't have Ollama available, the script cannot invoke the model and will fail early.
-
-
-Configuration
--------------
-- `main.py` currently sets the model via:
-
-```text
-llm = Ollama(model="phi3")
-# llm = Ollama(model="mistral")  # optional upgrade
+```cmd
+pip install langchain-community openpyxl
 ```
 
-Change the model name to one installed/available on your Ollama host.
+---
 
-If you need to configure a custom host or API settings, set environment variables before running the script (example for Windows cmd):
+## Ollama configuration (important)
+
+`main.py` uses `langchain_community.llms.Ollama`. This requires an Ollama host (usually a local Ollama daemon) with one or more models installed.
+
+Two common setups:
+
+1. Local Ollama (recommended)
+   - Install Ollama following https://ollama.ai instructions.
+   - Start the Ollama daemon and install a model, for example `phi3` or `mistral`.
+   - Ensure the model name in `main.py` matches an installed model:
+
+```python
+llm = Ollama(model="phi3")
+# or
+# llm = Ollama(model="mistral")
+```
+
+2. Remote Ollama host (advanced)
+   - If you run Ollama on a remote machine, configure the client to point at the host.
+   - The wrapper may read `OLLAMA_HOST` or similar environment variables. Example (cmd.exe):
 
 ```cmd
 set OLLAMA_HOST=http://127.0.0.1:11434
-set OLLAMA_API_KEY=your_api_key_if_applicable
+set OLLAMA_API_KEY=your_api_key_if_required
 ```
 
-(Adjust the names according to your Ollama client/wrapper configuration.)
+Note: Consult the `langchain_community` Ollama wrapper docs if you need custom auth or headers.
 
+---
 
-Running the script
-------------------
-From the repository root with the virtual environment active:
+## Running the script
+
+From the repository root with your virtual environment active:
 
 ```cmd
 python main.py
 ```
 
-Expected behavior:
-- The script will print progress for each module as it generates test cases.
-- It will write `test_cases.xlsx` to the current working directory.
-- The Excel workbook will have a sheet named "Test Cases" and columns: `TestCaseID`, `Type`, `Module`, `Steps`, `ExpectedResult`.
+What to expect:
+- The script prints progress as it generates test cases per module.
+- The generated file `test_cases.xlsx` will be saved in the current working directory.
+- The Excel sheet is named `Test Cases` and contains columns: `TestCaseID`, `Type`, `Module`, `Steps`, `ExpectedResult`.
 
+---
 
-Excel output format
--------------------
-Each row in `test_cases.xlsx` corresponds to a single test case, following the strict format the generator expects:
+## Output format and parsing details
 
-TestCaseID | Type | Module | Steps | ExpectedResult
+The LLM is prompted to return test cases in a strict pipe-delimited format:
 
-Only lines containing exactly 5 pipe-separated fields are written to the workbook. If the model returns lines in a different format, they will be ignored by the current parser.
+Type | Module | Steps | ExpectedResult
 
+Only lines that contain `|` and at least four pipe-separated parts are parsed and written to Excel. The script will prepend a `TestCaseID` (e.g., `TC001`) when saving.
 
-Extending or modifying
-----------------------
-- To change which modules are generated, edit the `modules` list in `main.py`.
-- To change the SRS, edit the `srs_text` block in `main.py`.
-- The output parsing in `save_to_excel` is intentionally simple; if you need a more robust parser (e.g., multi-line expected results or additional fields), consider enhancing `save_to_excel` to use a regex or a small state machine.
+If the LLM produces multi-line or otherwise malformed output, those lines may be ignored by the current parser. See "Extending or modifying" below for improvements.
 
+---
 
-Troubleshooting
----------------
-- "Connection refused" / "Failed to connect to Ollama": ensure Ollama daemon is running and reachable at the configured host/port.
-- "Model not found": install the model on Ollama or change the `model=` value to one you have.
-- No rows written to Excel: open `main.py` and check the parsing logic. The model output is filtered; only lines containing `|` and producing exactly 5 columns are written.
-- Encoding/Unicode issues: your SRS contains special characters. If you see encoding errors when opening the Excel file, upgrade `openpyxl` and ensure your environment is using UTF-8.
+## Common issues & troubleshooting
 
+- Connection refused / Failed to connect to Ollama
+  - Ensure the Ollama daemon is running and reachable at the configured host/port.
+  - Check `OLLAMA_HOST` if using a custom host.
 
-Next steps / Suggestions
------------------------
-- Add a small wrapper or CLI to allow selecting individual modules to generate.
-- Add a `--dry-run` mode to preview model output before writing to Excel.
-- Add unit tests for `save_to_excel` using a mocked LLM output.
-- Add better error handling around the LLM call (timeouts, retries, rate limits).
+- Model not found
+  - Install the desired model on Ollama or change `model=` in `main.py` to an available model name.
 
+- No rows written to Excel
+  - The parser only accepts pipe-delimited lines. Inspect the script output (it prints the raw LLM output) to see why lines were ignored.
 
-License
--------
-Choose a license appropriate for your project (MIT, Apache-2.0, etc.).
+- Encoding or Excel errors
+  - Update `openpyxl` and ensure your Python environment uses UTF-8 (Windows default may vary). Opening with Excel should work for typical UTF-8 content.
 
+---
 
-Contact / Help
---------------
-If you want, I can:
-- Add a `requirements.txt` (I included a minimal one in this repo).
-- Add a small CLI wrapper to select modules and output file path.
-- Improve parsing so multi-line expected results are supported.
+## Development notes / Customization
 
+- Change modules: edit the `modules` list in `main.py`.
+- Change the SRS: edit the `srs_text` variable in `main.py`.
+- Improve parsing: `save_to_excel` currently splits lines by `|` and expects 4 parts; consider a regex-based parser or a small state machine if you need multi-line fields.
+- Add logging, retries, or timeouts around the LLM call for production use.
 
-Generated on: 2026-04-02
+Suggested small improvements you can add immediately:
+- A CLI wrapper (argparse) to select modules and output path.
+- `--dry-run` mode to print/paraphrase the LLM output without writing Excel.
+- Unit tests for `save_to_excel` with a mocked LLM output.
+
+---
+
+## Example (sample flow)
+
+1. Activate virtualenv and run `python main.py`.
+2. Observe console output per module.
+3. Open `test_cases.xlsx` and review the generated test cases.
+
+---
+
+## License
+
+Pick a license for your project (MIT, Apache-2.0, etc.).
+
+---
+
+## Contact / Next steps
+
+If you'd like, I can:
+- Add a lightweight CLI wrapper and argument parsing.
+- Make the `save_to_excel` parser more robust to multi-line fields.
+- Add a `requirements.txt` or update it with pinned versions.
+- Add unit tests for the parser and integration tests that mock the LLM.
+
+Generated on: 2026-04-06
