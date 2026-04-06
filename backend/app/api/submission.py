@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -7,6 +7,15 @@ from app.api import deps
 from app.services.ai_adapter import evaluate_entry
 
 router = APIRouter()
+
+@router.get("/me", response_model=List[schemas.EntryResponse])
+def get_my_submissions(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    entries = db.query(models.Entry).filter(models.Entry.user_id == current_user.id).all()
+    return entries
 
 @router.post("/", response_model=schemas.EntryResponse)
 def create_submission(

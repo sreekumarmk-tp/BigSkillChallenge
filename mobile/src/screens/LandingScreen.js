@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { AppContext } from '../context/AppContext';
 import GradientBackground from '../components/GradientBackground';
 import { COLORS, SIZES, GLOBAL_STYLES } from '../theme/constants';
 
 const LandingScreen = ({ navigation }) => {
+  const { userToken } = useContext(AppContext);
+
+  React.useEffect(() => {
+    if (userToken) {
+      navigation.navigate('Dashboard');
+    }
+  }, [userToken]);
+
   return (
     <GradientBackground>
       <View style={styles.container}>

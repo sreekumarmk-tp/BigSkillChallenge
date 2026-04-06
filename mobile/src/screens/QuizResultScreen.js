@@ -11,6 +11,7 @@ const QuizResultScreen = ({ route, navigation }) => {
   let title = 'Incorrect Answer';
   let message = 'Unfortunately, your answer was incorrect. This entry is now forfeit.';
   let showNext = false;
+  let canRetry = true;
 
   if (status === 'timeout') {
     icon = '⏱';
@@ -21,6 +22,12 @@ const QuizResultScreen = ({ route, navigation }) => {
     title = 'Quiz Passed!';
     message = 'Congratulations. You may now proceed to the creative submission phase.';
     showNext = true;
+    canRetry = false;
+  } else if (status === 'limit_reached') {
+    icon = '🚫';
+    title = 'Limit Reached';
+    message = 'You have reached the maximum of 10 attempts allowed for this challenge.';
+    canRetry = false;
   }
 
   return (
@@ -36,9 +43,16 @@ const QuizResultScreen = ({ route, navigation }) => {
               <Text style={styles.buttonText}>Begin Creative Submission</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={[styles.button, styles.dashboardButton]} onPress={() => navigation.navigate('Dashboard')}>
-              <Text style={styles.buttonText}>Return to Dashboard</Text>
-            </TouchableOpacity>
+            <View style={{ width: '100%' }}>
+              {canRetry && (
+                <TouchableOpacity style={[styles.button, { marginBottom: SIZES.padding }]} onPress={() => navigation.replace('Quiz')}>
+                  <Text style={styles.buttonText}>New Attempt</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={[styles.button, styles.dashboardButton]} onPress={() => navigation.navigate('Dashboard')}>
+                <Text style={styles.buttonText}>Return to Dashboard</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </SafeAreaView>

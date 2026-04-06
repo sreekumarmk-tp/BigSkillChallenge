@@ -106,6 +106,43 @@ export const AppProvider = ({ children }) => {
       }
   }
 
+  const startQuiz = async (compId) => {
+    try {
+      const response = await api.post('/quiz/start', { competition_id: compId });
+      return response.data;
+    } catch (e) {
+      console.log(`startQuiz error ${e}`);
+      throw e;
+    }
+  };
+
+  const evaluateAnswer = async (attemptId, questionId, answer) => {
+    try {
+      const response = await api.post('/quiz/evaluate-answer', {
+        attempt_id: attemptId,
+        question_id: questionId,
+        answer: answer
+      });
+      return response.data;
+    } catch (e) {
+      console.log(`evaluateAnswer error ${e}`);
+      throw e;
+    }
+  };
+
+  const submitQuiz = async (attemptId, answers) => {
+    try {
+      const response = await api.post('/quiz/submit', {
+        attempt_id: attemptId,
+        answers: answers
+      });
+      return response.data;
+    } catch (e) {
+      console.log(`submitQuiz error ${e}`);
+      throw e;
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -113,6 +150,9 @@ export const AppProvider = ({ children }) => {
         register,
         logout,
         processPayment,
+        startQuiz,
+        evaluateAnswer,
+        submitQuiz,
         isLoading,
         userToken,
         userInfo,
