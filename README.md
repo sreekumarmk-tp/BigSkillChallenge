@@ -116,6 +116,7 @@ Based on the core prototypes, the MVP contains the following foundational scaffo
   - The API strictly endpoints validations checking verbatim for 25-word creative entries.
   - An `ai_adapter.py` adapter prepares deterministic prompts linking to local (Ollama) or cloud (Groq/Gemini) Language Models.
   - The response yields structured metrics (`Relevance`, `Creativity`, `Clarity`, `Impact`) mimicking the immutable audit trail provided.
+- **AI Scoring System**: See the [detailed documentation](file:///mnt/data/sreekumar/projects/AgenticAI/BigSkillChallenge/AI_SCORING_SYSTEM.md) for the Graph-based Orchestrator architecture using LangGraph.
 - **Aesthetic System Layout**: React Native constants configuring `linear-gradients`, `#F59E0B` CTA buttons and translucent glass borders.
 - **Admin Dashboard**:
   - Secure **sqladmin** dashboard for manual evaluation of winners.
