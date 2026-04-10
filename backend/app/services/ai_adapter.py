@@ -2,6 +2,7 @@ from app import schemas
 from app.core.config import settings
 from app.services.scoring_graph import scoring_graph
 import random
+from langsmith import traceable
 
 def get_llm():
     provider = settings.LLM_PROVIDER.lower()
@@ -22,6 +23,7 @@ def get_llm():
     
     return None
 
+@traceable(name="Evaluate Submission Entry")
 async def evaluate_entry(content: str) -> schemas.ScoreResponse:
     word_count = len(content.split())
     if word_count != 25:

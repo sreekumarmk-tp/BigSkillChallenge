@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "requirements.txt"
+  ],
+  "graphs": {
+    "scoring": "./app/services/scoring_graph.py:scoring_graph"
+  },
+  "env": ".env"
+}

@@ -1,4 +1,6 @@
 import json
+import logging
+from langsmith import traceable
 from typing import TypedDict, Any, Dict
 try:
     from typing import Annotated
@@ -10,6 +12,8 @@ from langgraph.graph import StateGraph, END
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig
+
+logger = logging.getLogger(__name__)
 
 # Define the state for LangGraph
 class ScoringState(TypedDict):
@@ -36,6 +40,7 @@ def get_llm(config: RunnableConfig) -> BaseChatModel:
     return config["configurable"].get("llm")
 
 # Agent Nodes
+@traceable
 def relevance_node(state: ScoringState, config: RunnableConfig) -> Dict:
     llm = get_llm(config)
     structured_llm = llm.with_structured_output(AgentScoreOutput)
@@ -44,8 +49,10 @@ def relevance_node(state: ScoringState, config: RunnableConfig) -> Dict:
         HumanMessage(content=f"Evaluate this entry:\n{state['entry_content']}")
     ]
     response = structured_llm.invoke(prompt)
+    logger.info(f"Relevance node completed with score: {response.score}")
     return {"relevance_score": response.score, "relevance_feedback": response.feedback}
 
+@traceable
 def creativity_node(state: ScoringState, config: RunnableConfig) -> Dict:
     llm = get_llm(config)
     structured_llm = llm.with_structured_output(AgentScoreOutput)
@@ -54,8 +61,10 @@ def creativity_node(state: ScoringState, config: RunnableConfig) -> Dict:
         HumanMessage(content=f"Evaluate this entry:\n{state['entry_content']}")
     ]
     response = structured_llm.invoke(prompt)
+    logger.info(f"Creativity node completed with score: {response.score}")
     return {"creativity_score": response.score, "creativity_feedback": response.feedback}
 
+@traceable
 def clarity_node(state: ScoringState, config: RunnableConfig) -> Dict:
     llm = get_llm(config)
     structured_llm = llm.with_structured_output(AgentScoreOutput)
@@ -64,8 +73,10 @@ def clarity_node(state: ScoringState, config: RunnableConfig) -> Dict:
         HumanMessage(content=f"Evaluate this entry:\n{state['entry_content']}")
     ]
     response = structured_llm.invoke(prompt)
+    logger.info(f"Clarity node completed with score: {response.score}")
     return {"clarity_score": response.score, "clarity_feedback": response.feedback}
 
+@traceable
 def impact_node(state: ScoringState, config: RunnableConfig) -> Dict:
     llm = get_llm(config)
     structured_llm = llm.with_structured_output(AgentScoreOutput)
@@ -74,8 +85,10 @@ def impact_node(state: ScoringState, config: RunnableConfig) -> Dict:
         HumanMessage(content=f"Evaluate this entry:\n{state['entry_content']}")
     ]
     response = structured_llm.invoke(prompt)
+    logger.info(f"Impact node completed with score: {response.score}")
     return {"impact_score": response.score, "impact_feedback": response.feedback}
 
+@traceable
 def reflection_node(state: ScoringState, config: RunnableConfig) -> Dict:
     # Consistency check
     metrics = [
@@ -87,6 +100,7 @@ def reflection_node(state: ScoringState, config: RunnableConfig) -> Dict:
     
     # Simple reflection: if there's a huge discrepancy (e.g. > 50 points difference max to min)
     if max(metrics) - min(metrics) > 50:
+        logger.warning(f"Conflict detected in scoring. Max discrepancy: {max(metrics) - min(metrics)}")
         return {"conflict_detected": True}
     return {"conflict_detected": False}
 
@@ -97,6 +111,7 @@ class AdjustmentOutput(BaseModel):
     impact_score: float
     final_feedback: str
 
+@traceable
 def adjustment_node(state: ScoringState, config: RunnableConfig) -> Dict:
     llm = get_llm(config)
     structured_llm = llm.with_structured_output(AdjustmentOutput)
@@ -105,6 +120,7 @@ def adjustment_node(state: ScoringState, config: RunnableConfig) -> Dict:
         HumanMessage(content=f"Entry: {state['entry_content']}\n\nCurrent Scores:\nRelevance: {state.get('relevance_score')}\nCreativity: {state.get('creativity_score')}\nClarity: {state.get('clarity_score')}\nImpact: {state.get('impact_score')}\n\nPlease adjust.")
     ]
     response = structured_llm.invoke(prompt)
+    logger.info("Adjustment node completed. Conflict resolved.")
     return {
         "relevance_score": response.relevance_score,
         "creativity_score": response.creativity_score,
@@ -114,6 +130,7 @@ def adjustment_node(state: ScoringState, config: RunnableConfig) -> Dict:
         "conflict_detected": False
     }
 
+@traceable
 def normalization_node(state: ScoringState) -> Dict:
     # Calculate final total score if not provided
     total = (
@@ -127,6 +144,7 @@ def normalization_node(state: ScoringState) -> Dict:
     if not feedback:
         feedback = f"Analyzed by AI. Highlights: {state.get('creativity_feedback')}"
 
+    logger.info(f"Normalization node completed. Final score: {round(total, 2)}")
     return {
         "final_score": round(total, 2),
         "final_feedback": feedback
