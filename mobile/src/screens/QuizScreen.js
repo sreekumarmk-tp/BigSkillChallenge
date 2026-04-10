@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { AppContext } from '../context/AppContext';
-import GradientBackground from '../components/GradientBackground';
-import { COLORS, SIZES, GLOBAL_STYLES } from '../theme/constants';
+import ScreenShell from '../components/ScreenShell';
+import AppFooter from '../components/AppFooter';
+import { NEON_CYAN, CARD_BG, TEXT_MUTED, SCREEN_PADDING_H } from '../theme/neonTheme';
 
 const QuizScreen = ({ navigation }) => {
   const { competition, startQuiz, evaluateAnswer, submitQuiz, setQuizPassed } = useContext(AppContext);
@@ -23,10 +23,10 @@ const QuizScreen = ({ navigation }) => {
         setLoading(false);
       } catch (e) {
         console.log(e);
-        if (e.response && e.response.data && e.response.data.detail === "Maximum 10 attempts reached") {
+        if (e.response && e.response.data && e.response.data.detail === 'Maximum 10 attempts reached') {
           navigation.replace('QuizResult', { status: 'limit_reached' });
         } else {
-           navigation.replace('Dashboard');
+          navigation.replace('Dashboard');
         }
       }
     };
@@ -35,35 +35,35 @@ const QuizScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (loading || questions.length === 0) return;
-    
+
     if (timeLeft === 0) {
       navigation.replace('QuizResult', { status: 'timeout' });
       return;
     }
     const timerId = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
+      setTimeLeft((prev) => prev - 1);
     }, 1000);
     return () => clearInterval(timerId);
   }, [timeLeft, loading, questions, navigation]);
 
   const handleAnswer = async (selectedOption) => {
     const currentQuestion = questions[currentQuestionIdx];
-    
+
     try {
       setLoading(true);
       const evalResult = await evaluateAnswer(attemptId, currentQuestion.id, selectedOption);
-      
+
       if (!evalResult.is_correct) {
         navigation.replace('QuizResult', { status: 'incorrect' });
         return;
       }
 
       if (currentQuestionIdx < questions.length - 1) {
-        setCurrentQuestionIdx(prev => prev + 1);
+        setCurrentQuestionIdx((prev) => prev + 1);
         setTimeLeft(30);
         setLoading(false);
       } else {
-        const result = await submitQuiz(attemptId, []); // Answers already evaluated
+        const result = await submitQuiz(attemptId, []);
         if (result.status === 'passed') {
           setQuizPassed(true);
           navigation.replace('QuizResult', { status: 'success' });
@@ -77,106 +77,110 @@ const QuizScreen = ({ navigation }) => {
     }
   };
 
-  if (loading) {
+  if (loading && questions.length === 0) {
     return (
-      <GradientBackground>
-        <SafeAreaView style={GLOBAL_STYLES.container}>
-          <View style={styles.content}>
-            <Text style={styles.question}>Loading your challenge...</Text>
-          </View>
-        </SafeAreaView>
-      </GradientBackground>
+      <ScreenShell>
+        <View style={styles.centerContent}>
+          <Text style={styles.question}>Loading your challenge...</Text>
+        </View>
+      </ScreenShell>
     );
   }
 
   const currentQuestion = questions[currentQuestionIdx];
 
   return (
-    <GradientBackground>
-      <SafeAreaView style={GLOBAL_STYLES.container}>
-        <View style={styles.content}>
-          <Text style={styles.timer}>{timeLeft}s</Text>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${(timeLeft / 30) * 100}%` }]} />
-          </View>
-          
-          <Text style={styles.questionCount}>Question {currentQuestionIdx + 1} of {questions.length}</Text>
-          <Text style={styles.question}>
-            {currentQuestion.text}
-          </Text>
-
-          <View style={styles.optionsContainer}>
-            {['A', 'B', 'C', 'D'].map((opt) => (
-               <TouchableOpacity 
-                key={opt}
-                style={styles.optionButton} 
-                onPress={() => handleAnswer(opt)}
-               >
-                <Text style={styles.optionText}>
-                    {opt}) {currentQuestion[`option_${opt.toLowerCase()}`]}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+    <ScreenShell>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+        <Text style={styles.timer}>{timeLeft}s</Text>
+        <View style={styles.progressBarBg}>
+          <View style={[styles.progressBarFill, { width: `${(timeLeft / 30) * 100}%` }]} />
         </View>
-      </SafeAreaView>
-    </GradientBackground>
+
+        <Text style={styles.questionCount}>
+          Question {currentQuestionIdx + 1} of {questions.length}
+        </Text>
+        <Text style={styles.question}>{currentQuestion.text}</Text>
+
+        <View style={styles.optionsContainer}>
+          {['A', 'B', 'C', 'D'].map((opt) => (
+            <TouchableOpacity key={opt} style={styles.optionButton} onPress={() => handleAnswer(opt)} activeOpacity={0.85}>
+              <Text style={styles.optionText}>
+                {opt}) {currentQuestion[`option_${opt.toLowerCase()}`]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <AppFooter />
+      </ScrollView>
+    </ScreenShell>
   );
 };
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    padding: SIZES.padding * 2,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SCREEN_PADDING_H,
+    paddingTop: 24,
+    paddingBottom: 40,
     alignItems: 'center',
+  },
+  centerContent: {
+    flex: 1,
+    paddingHorizontal: SCREEN_PADDING_H,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   timer: {
     fontSize: 48,
-    color: COLORS.primary.orangeStart,
+    color: NEON_CYAN,
     fontWeight: 'bold',
-    marginBottom: SIZES.base,
+    marginBottom: 8,
   },
   progressBarBg: {
     width: '100%',
     height: 8,
-    backgroundColor: COLORS.glass.input,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 4,
-    marginBottom: SIZES.padding * 3,
+    marginBottom: 24,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: COLORS.primary.orangeStart,
+    backgroundColor: NEON_CYAN,
   },
   questionCount: {
-    color: COLORS.primary.orangeStart,
-    fontSize: 16,
+    color: NEON_CYAN,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: SIZES.base,
+    marginBottom: 8,
+    letterSpacing: 0.5,
   },
   question: {
-    fontSize: 22,
-    color: COLORS.text.primary,
+    fontSize: 18,
+    color: '#FFF',
     textAlign: 'center',
-    marginBottom: SIZES.padding * 3,
-    lineHeight: 30,
+    marginBottom: 24,
+    lineHeight: 26,
+    fontWeight: '600',
   },
   optionsContainer: {
     width: '100%',
   },
   optionButton: {
-    backgroundColor: COLORS.glass.bg,
-    borderColor: COLORS.glass.border,
+    backgroundColor: CARD_BG,
+    borderColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    marginBottom: SIZES.padding,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
   },
   optionText: {
-    color: COLORS.text.primary,
-    fontSize: 18,
-  }
+    color: TEXT_MUTED,
+    fontSize: 15,
+    lineHeight: 22,
+  },
 });
 
 export default QuizScreen;

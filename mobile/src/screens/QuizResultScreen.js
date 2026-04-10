@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import GradientBackground from '../components/GradientBackground';
-import { COLORS, SIZES, GLOBAL_STYLES } from '../theme/constants';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import ScreenShell from '../components/ScreenShell';
+import AppFooter from '../components/AppFooter';
+import { TEXT_MUTED, SUCCESS, ERROR, CTA_GRADIENT_COLORS, CARD_BG, SCREEN_PADDING_H } from '../theme/neonTheme';
 
 const QuizResultScreen = ({ route, navigation }) => {
   const { status } = route.params || { status: 'incorrect' };
@@ -30,82 +31,103 @@ const QuizResultScreen = ({ route, navigation }) => {
     canRetry = false;
   }
 
+  const titleColor = status === 'success' ? SUCCESS : ERROR;
+
   return (
-    <GradientBackground>
-      <SafeAreaView style={GLOBAL_STYLES.container}>
-        <View style={styles.content}>
-          <Text style={styles.icon}>{icon}</Text>
-          <Text style={[styles.title, status === 'success' ? styles.successText : styles.errorText]}>{title}</Text>
-          <Text style={styles.subtitle}>{message}</Text>
-          
-          {showNext ? (
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CreativeSubmission')}>
+    <ScreenShell>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+        <Text style={styles.icon}>{icon}</Text>
+        <Text style={[styles.title, { color: titleColor }]}>{title}</Text>
+        <Text style={styles.subtitle}>{message}</Text>
+
+        {showNext ? (
+          <TouchableOpacity style={styles.ctaWrap} onPress={() => navigation.navigate('CreativeSubmission')} activeOpacity={0.85}>
+            <LinearGradient colors={CTA_GRADIENT_COLORS} style={styles.button} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
               <Text style={styles.buttonText}>Begin Creative Submission</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={{ width: '100%' }}>
-              {canRetry && (
-                <TouchableOpacity style={[styles.button, { marginBottom: SIZES.padding }]} onPress={() => navigation.replace('Quiz')}>
+            </LinearGradient>
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: '100%' }}>
+            {canRetry && (
+              <TouchableOpacity style={[styles.ctaWrap, { marginBottom: 12 }]} onPress={() => navigation.replace('Quiz')} activeOpacity={0.85}>
+                <LinearGradient colors={CTA_GRADIENT_COLORS} style={styles.button} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                   <Text style={styles.buttonText}>New Attempt</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity style={[styles.button, styles.dashboardButton]} onPress={() => navigation.navigate('Dashboard')}>
-                <Text style={styles.buttonText}>Return to Dashboard</Text>
+                </LinearGradient>
               </TouchableOpacity>
-            </View>
-          )}
-        </View>
-      </SafeAreaView>
-    </GradientBackground>
+            )}
+            <TouchableOpacity
+              style={[styles.secondaryBtn, canRetry && { marginTop: 12 }]}
+              onPress={() => navigation.navigate('Dashboard')}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.secondaryBtnText}>Return to Dashboard</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <AppFooter />
+      </ScrollView>
+    </ScreenShell>
   );
 };
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    padding: SIZES.padding * 2,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SCREEN_PADDING_H,
+    paddingTop: 40,
+    paddingBottom: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   icon: {
     fontSize: 64,
-    marginBottom: SIZES.padding,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: SIZES.base,
+    fontSize: 22,
+    fontWeight: '900',
+    marginBottom: 8,
     textAlign: 'center',
-  },
-  successText: {
-    color: COLORS.feedback.success,
-  },
-  errorText: {
-    color: COLORS.feedback.error,
   },
   subtitle: {
-    fontSize: 16,
-    color: COLORS.text.secondary,
+    fontSize: 14,
+    color: TEXT_MUTED,
     textAlign: 'center',
-    marginBottom: SIZES.padding * 3,
-    lineHeight: 24,
+    marginBottom: 32,
+    lineHeight: 22,
+  },
+  ctaWrap: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 0,
   },
   button: {
-    backgroundColor: COLORS.primary.orangeStart,
-    padding: SIZES.padding,
-    borderRadius: SIZES.btnRadius,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    width: '100%',
-  },
-  dashboardButton: {
-    backgroundColor: COLORS.glass.bg,
-    borderWidth: 1,
-    borderColor: COLORS.glass.border,
   },
   buttonText: {
-    color: COLORS.text.primary,
-    fontSize: 16,
+    color: '#FFF',
+    fontSize: 15,
     fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  secondaryBtn: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: CARD_BG,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  secondaryBtnText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
 });
 

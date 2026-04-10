@@ -1,27 +1,39 @@
+import {
+  DARK_BG,
+  CARD_BG,
+  TEXT_MUTED,
+  NEON_CYAN,
+  NEON_PURPLE,
+  SUCCESS,
+  ERROR,
+  INPUT_BG,
+} from './neonTheme';
+
 export const COLORS = {
   background: {
-    dark: "#08002E",
-    mid: "#12006E",
-    light: "#1A0A7C"
+    dark: DARK_BG,
+    mid: '#11162C',
+    light: '#1A203B',
   },
   primary: {
-    orangeStart: "#F59E0B",
-    orangeEnd: "#EA580C"
+    orangeStart: NEON_PURPLE,
+    orangeEnd: '#7161FF',
   },
   feedback: {
-    success: "#4ADE80",
-    error: "#F87171",
-    info: "#C4B5FD"
+    success: SUCCESS,
+    error: ERROR,
+    info: '#C4B5FD',
   },
   glass: {
-    bg: "rgba(255, 255, 255, 0.07)",
-    border: "rgba(255, 255, 255, 0.12)",
-    input: "rgba(255, 255, 255, 0.08)"
+    bg: CARD_BG,
+    border: 'rgba(255, 255, 255, 0.05)',
+    input: INPUT_BG,
   },
   text: {
-    primary: "#FFFFFF",
-    secondary: "rgba(255, 255, 255, 0.7)",
-  }
+    primary: '#FFFFFF',
+    secondary: TEXT_MUTED,
+    accent: NEON_CYAN,
+  },
 };
 
 export const SIZES = {
@@ -43,3 +55,5 @@ export const GLOBAL_STYLES = {
     flex: 1,
   }
 };
+
+export * from './neonTheme';
