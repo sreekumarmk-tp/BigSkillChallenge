@@ -18,7 +18,7 @@ def get_my_submissions(
     return entries
 
 @router.post("/", response_model=schemas.EntryResponse)
-def create_submission(
+async def create_submission(
     *,
     db: Session = Depends(deps.get_db),
     entry_in: schemas.EntryCreate,
@@ -43,7 +43,7 @@ def create_submission(
     db.flush() # flush to get the entry.id
     
     # Run AI evaluation (mocked deterministic scoring)
-    scoring_result = evaluate_entry(entry_in.content)
+    scoring_result = await evaluate_entry(entry_in.content)
     
     # Store score
     score = models.Score(

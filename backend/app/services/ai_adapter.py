@@ -1,11 +1,28 @@
 from app import schemas
 from app.core.config import settings
+from app.services.scoring_graph import scoring_graph
 import random
 
-def evaluate_entry(content: str) -> schemas.ScoreResponse:
-    # Deterministic Scoring stub
+def get_llm():
+    provider = settings.LLM_PROVIDER.lower()
+    model = settings.LLM_MODEL
     
-    # Calculate mock scores based on word length for now
+    if provider == "groq":
+        from langchain_groq import ChatGroq
+        model_name = model or "llama-3.3-70b-versatile"
+        return ChatGroq(model_name=model_name, groq_api_key=settings.GROQ_API_KEY or settings.LLM_API_KEY)
+    elif provider == "ollama":
+        from langchain_ollama import ChatOllama
+        model_name = model or "gemma4"
+        return ChatOllama(model=model_name, base_url=settings.OLLAMA_BASE_URL)
+    elif provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        model_name = model or "gemini-1.5-flash"
+        return ChatGoogleGenerativeAI(model=model_name, google_api_key=settings.LLM_API_KEY)
+    
+    return None
+
+async def evaluate_entry(content: str) -> schemas.ScoreResponse:
     word_count = len(content.split())
     if word_count != 25:
         return schemas.ScoreResponse(
@@ -16,9 +33,11 @@ def evaluate_entry(content: str) -> schemas.ScoreResponse:
             total_score=0.0,
             feedback="Your entry must be exactly 25 words."
         )
+        
+    llm = get_llm()
     
-    if settings.LLM_PROVIDER == "mock" or not settings.LLM_API_KEY:
-        # Generating mock deterministic scores
+    if settings.LLM_PROVIDER == "mock" or not llm:
+        # Deterministic dummy scoring
         relevance = round(random.uniform(70, 95), 2)
         creativity = round(random.uniform(60, 95), 2)
         clarity = round(random.uniform(75, 95), 2)
@@ -31,16 +50,30 @@ def evaluate_entry(content: str) -> schemas.ScoreResponse:
             clarity_score=clarity,
             impact_score=impact,
             total_score=total,
-            feedback="Great effort! Your response has been evaluated by the AI engine."
+            feedback="Great effort! Your response has been evaluated by the AI engine (mock)."
         )
-    else:
-        # In a full implementation, integrate with OpenAI/Google GenAI here.
-        # Returning mock for MVP simplicity
+        
+    # Execute graph
+    inputs = {"entry_content": content}
+    config = {"configurable": {"llm": llm}}
+    
+    try:
+        final_state = await scoring_graph.ainvoke(inputs, config)
+        
         return schemas.ScoreResponse(
-            relevance_score=90.0,
-            creativity_score=85.0,
-            clarity_score=88.0,
-            impact_score=80.0,
-            total_score=85.75,
-            feedback="Evaluated externally."
+            relevance_score=final_state.get("relevance_score", 0.0),
+            creativity_score=final_state.get("creativity_score", 0.0),
+            clarity_score=final_state.get("clarity_score", 0.0),
+            impact_score=final_state.get("impact_score", 0.0),
+            total_score=final_state.get("final_score", 0.0),
+            feedback=final_state.get("final_feedback", "Evaluated successfully.")
+        )
+    except Exception as e:
+        return schemas.ScoreResponse(
+            relevance_score=0.0,
+            creativity_score=0.0,
+            clarity_score=0.0,
+            impact_score=0.0,
+            total_score=0.0,
+            feedback=f"AI Evaluation failed: {str(e)}"
         )

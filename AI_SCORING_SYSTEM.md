@@ -120,4 +120,4 @@ Ensures all scores are mathematically aligned to the platform's leaderboard stan
 - **Engine**: Python / FastAPI
 - **Graph Core**: `langgraph.graph.StateGraph`
 - **Memory**: `langgraph.checkpoint.MemorySaver` for thread-safe state persistence during reflection loops.
-- **Models**: Gemini 1.5 Pro or similar for specialized evaluation.
+- **Models**: Configurable via `.env` (variable `LLM_MODEL`). Supports Groq (e.g., `llama-3.3-70b-versatile`), Ollama (e.g., `gemma4`), and Gemini (e.g., `gemini-1.5-flash`).

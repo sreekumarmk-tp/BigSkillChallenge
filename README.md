@@ -112,11 +112,12 @@ Based on the core prototypes, the MVP contains the following foundational scaffo
 - **OTP Verification**: Email-based verification flow (SMTP) to ensure user authenticity during registration.
 - **Competition Flow**: Secure API structure outlining eligibility checks and active entry points.
 - **Mock Payments**: Payment integration layer ready to be substituted with Stripe / Razorpay logic upon production launch.
-- **25-Word AI Submission**:
-  - The API strictly endpoints validations checking verbatim for 25-word creative entries.
-  - An `ai_adapter.py` adapter prepares deterministic prompts linking to local (Ollama) or cloud (Groq/Gemini) Language Models.
-  - The response yields structured metrics (`Relevance`, `Creativity`, `Clarity`, `Impact`) mimicking the immutable audit trail provided.
-- **AI Scoring System**: See the [detailed documentation](file:///mnt/data/sreekumar/projects/AgenticAI/BigSkillChallenge/AI_SCORING_SYSTEM.md) for the Graph-based Orchestrator architecture using LangGraph.
+- **25-Word LangGraph AI Scoring System**:
+  - Validates entries perfectly matching the 25-word limit before AI inference to ensure constraints are respected.
+  - Powered by a **LangGraph Orchestrator** leveraging a Parallel + Aggregation + Reflection (PAR) workflow pattern.
+  - Four sub-agents evaluate `Relevance`, `Creativity`, `Clarity`, and `Impact` concurrently, with an automated consistency and reflection check for maximum deterministic quality.
+  - Utilizes dynamic provider injection via `ai_adapter.py` seamlessly integrating local **Ollama** models, remote free-tier **Groq** endpoints, and production-ready **Gemini** providers. All providers can have their specific model names configured globally via the `LLM_MODEL` environment variable.
+  - See the [detailed documentation](file:///mnt/data/sreekumar/projects/AgenticAI/BigSkillChallenge/AI_SCORING_SYSTEM.md) for deeper workflow details.
 - **Aesthetic System Layout**: React Native constants configuring `linear-gradients`, `#F59E0B` CTA buttons and translucent glass borders.
 - **Admin Dashboard**:
   - Secure **sqladmin** dashboard for manual evaluation of winners.
@@ -133,3 +134,4 @@ Based on the core prototypes, the MVP contains the following foundational scaffo
 - [x] Fix user registration to correctly save `first_name` and `last_name`.
 - [x] Implement **SQLAlchemy Admin Panel** with secure authentication.
 - [x] Create **Leaderboard** view for top scores and manual winner selection.
+- [x] Integrate **LangGraph AI Orchestrator** for rigorous, parallel submission scoring across local Ollama, Groq, and Gemini LLMs.

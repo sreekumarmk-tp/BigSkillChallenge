@@ -30,11 +30,14 @@ class Settings(BaseSettings):
 
     # LLM Settings
     LLM_API_KEY: Optional[str] = None
-    LLM_PROVIDER: str = "mock"
+    LLM_PROVIDER: str = "ollama" # options: "mock", "gemini", "groq", "ollama"
+    LLM_MODEL: Optional[str] = None
+    GROQ_API_KEY: Optional[str] = None
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
 
     @property
     def DATABASE_URL(self) -> str:
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        return f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     class Config:
         env_file = ".env"
