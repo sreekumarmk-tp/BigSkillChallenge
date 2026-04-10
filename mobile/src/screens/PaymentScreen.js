@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppContext } from '../context/AppContext';
-import GradientBackground from '../components/GradientBackground';
-import { COLORS, SIZES, GLOBAL_STYLES } from '../theme/constants';
+import ScreenShell from '../components/ScreenShell';
+import AppFooter from '../components/AppFooter';
+import { TEXT_MUTED, INPUT_BG, ERROR, CTA_GRADIENT_COLORS, SCREEN_PADDING_H } from '../theme/neonTheme';
 
 const PaymentScreen = ({ navigation }) => {
   const { processPayment } = useContext(AppContext);
@@ -26,85 +27,129 @@ const PaymentScreen = ({ navigation }) => {
   };
 
   return (
-    <GradientBackground>
-      <SafeAreaView style={GLOBAL_STYLES.container}>
-        <View style={styles.content}>
+    <ScreenShell>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Secure Checkout</Text>
           <Text style={styles.subtitle}>Pay A$2.99 entry fee.</Text>
 
-          <View style={GLOBAL_STYLES.glassCard}>
-            <TextInput style={styles.input} placeholder="Card Number" placeholderTextColor={COLORS.text.secondary} keyboardType="numeric" />
+          <View style={styles.card}>
+            <Text style={styles.inputLabel}>CARD NUMBER</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="0000 0000 0000 0000"
+              placeholderTextColor="#555"
+              keyboardType="numeric"
+            />
             <View style={styles.row}>
-              <TextInput style={[styles.input, styles.half]} placeholder="MM/YY" placeholderTextColor={COLORS.text.secondary} />
-              <TextInput style={[styles.input, styles.half]} placeholder="CVC" placeholderTextColor={COLORS.text.secondary} keyboardType="numeric" />
+              <View style={styles.halfCol}>
+                <Text style={styles.inputLabel}>EXPIRY</Text>
+                <TextInput style={styles.input} placeholder="MM/YY" placeholderTextColor="#555" />
+              </View>
+              <View style={styles.halfCol}>
+                <Text style={styles.inputLabel}>CVC</Text>
+                <TextInput style={styles.input} placeholder="•••" placeholderTextColor="#555" keyboardType="numeric" />
+              </View>
             </View>
-            <TextInput style={styles.input} placeholder="Name on Card" placeholderTextColor={COLORS.text.secondary} />
-            
+            <Text style={styles.inputLabel}>NAME ON CARD</Text>
+            <TextInput style={styles.input} placeholder="As shown on card" placeholderTextColor="#555" />
+
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <TouchableOpacity style={styles.button} onPress={handlePay} disabled={loading}>
-              {loading ? (
-                <ActivityIndicator color={COLORS.text.primary} />
-              ) : (
-                <Text style={styles.buttonText}>Pay A$2.99</Text>
-              )}
+            <TouchableOpacity style={styles.ctaWrap} onPress={handlePay} disabled={loading} activeOpacity={0.85}>
+              <LinearGradient colors={CTA_GRADIENT_COLORS} style={styles.button} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                {loading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.buttonText}>Pay A$2.99</Text>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           </View>
-        </View>
-      </SafeAreaView>
-    </GradientBackground>
+
+          <AppFooter />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ScreenShell>
   );
 };
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    padding: SIZES.padding * 2,
-    justifyContent: 'center',
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SCREEN_PADDING_H,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
   title: {
-    fontSize: 24,
-    color: COLORS.text.primary,
-    fontWeight: 'bold',
-    marginBottom: SIZES.base,
+    fontSize: 22,
+    color: '#FFF',
+    fontWeight: '900',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: COLORS.text.secondary,
-    marginBottom: SIZES.padding * 2,
+    fontSize: 14,
+    color: TEXT_MUTED,
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  card: {
+    backgroundColor: '#1C1F33',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    padding: 16,
+    marginBottom: 16,
+  },
+  inputLabel: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginLeft: 4,
   },
   input: {
-    backgroundColor: COLORS.glass.input,
-    borderColor: COLORS.glass.border,
+    backgroundColor: INPUT_BG,
     borderWidth: 1,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    color: COLORS.text.primary,
-    marginBottom: SIZES.base,
+    borderColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 56,
+    color: '#FFF',
+    fontSize: 15,
+    marginBottom: 16,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 0,
   },
-  half: {
+  halfCol: {
     width: '48%',
   },
+  ctaWrap: {
+    marginTop: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   button: {
-    backgroundColor: COLORS.primary.orangeStart,
-    padding: SIZES.padding,
-    borderRadius: SIZES.btnRadius,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: SIZES.padding,
   },
   buttonText: {
-    color: COLORS.text.primary,
-    fontSize: 16,
+    color: '#FFF',
+    fontSize: 15,
     fontWeight: 'bold',
+    letterSpacing: 1,
   },
   errorText: {
-    color: COLORS.feedback.error,
-    marginBottom: SIZES.base,
-  }
+    color: ERROR,
+    marginBottom: 12,
+    fontSize: 14,
+    textAlign: 'center',
+  },
 });
 
 export default PaymentScreen;

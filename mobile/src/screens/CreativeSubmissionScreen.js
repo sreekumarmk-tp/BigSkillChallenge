@@ -1,14 +1,13 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppContext } from '../context/AppContext';
 import api from '../services/api';
-import GradientBackground from '../components/GradientBackground';
-import { COLORS, SIZES, GLOBAL_STYLES } from '../theme/constants';
+import ScreenShell from '../components/ScreenShell';
+import AppFooter from '../components/AppFooter';
+import { TEXT_MUTED, ERROR, SUCCESS, CTA_GRADIENT_COLORS, INPUT_BG, SCREEN_PADDING_H } from '../theme/neonTheme';
 
-const countWords = (str) => {
-  return str.trim().split(/\s+/).filter(word => word.length > 0).length;
-};
+const countWords = (str) => str.trim().split(/\s+/).filter((word) => word.length > 0).length;
 
 const CreativeSubmissionScreen = ({ navigation }) => {
   const { competition } = useContext(AppContext);
@@ -17,19 +16,18 @@ const CreativeSubmissionScreen = ({ navigation }) => {
   const [error, setError] = useState('');
 
   const words = countWords(text);
-  const wordsLeft = 25 - words;
 
   const handleSubmit = async () => {
     if (words !== 25) {
       setError('Entry must be exactly 25 words.');
       return;
     }
-    
+
     setLoading(true);
     try {
       const res = await api.post('/submissions/', {
         competition_id: competition?.id || 1,
-        content: text
+        content: text,
       });
       navigation.replace('EntryAccepted', { entryId: res.data.id });
     } catch (e) {
@@ -39,146 +37,164 @@ const CreativeSubmissionScreen = ({ navigation }) => {
   };
 
   return (
-    <GradientBackground>
-      <SafeAreaView style={GLOBAL_STYLES.container}>
-        <KeyboardAvoidingView 
-          style={styles.keyboardView} 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.content}>
-            <Text style={styles.title}>Creative Hurdle</Text>
-            <Text style={styles.subtitle}>In exactly 25 words, tell us why you should win this prize.</Text>
-            
-            <View style={GLOBAL_STYLES.glassCard}>
-              <View style={styles.headerRow}>
-                <Text style={styles.label}>Your Response</Text>
-                <Text style={[styles.wordCount, words === 25 ? styles.textSuccess : words > 25 ? styles.textError : null]}>
-                  {words} / 25 words
-                </Text>
-              </View>
-              
-              <TextInput
-                style={styles.inputArea}
-                multiline
-                numberOfLines={8}
-                placeholder="Start typing..."
-                placeholderTextColor={COLORS.text.secondary}
-                value={text}
-                onChangeText={setText}
-                contextMenuHidden={true} // Blocks paste natively on iOS and newer Androids
-                autoCorrect={false}
-              />
-              
-              <View style={styles.instructionBox}>
-                <Text style={styles.instructionText}>
-                  ⚠️ Paste functionality is disabled. Responses must be original and exactly 25 words.
-                </Text>
-              </View>
-              
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    <ScreenShell>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>Creative Hurdle</Text>
+          <Text style={styles.subtitle}>In exactly 25 words, tell us why you should win this prize.</Text>
 
-              <TouchableOpacity 
-                style={[styles.button, words !== 25 && styles.buttonDisabled]} 
-                onPress={handleSubmit}
-                disabled={words !== 25 || loading}
+          <View style={styles.card}>
+            <View style={styles.headerRow}>
+              <Text style={styles.label}>Your Response</Text>
+              <Text style={[styles.wordCount, words === 25 ? styles.textSuccess : words > 25 ? styles.textError : null]}>
+                {words} / 25 words
+              </Text>
+            </View>
+
+            <TextInput
+              style={styles.inputArea}
+              multiline
+              numberOfLines={8}
+              placeholder="Start typing..."
+              placeholderTextColor="#555"
+              value={text}
+              onChangeText={setText}
+              contextMenuHidden
+              autoCorrect={false}
+            />
+
+            <View style={styles.instructionBox}>
+              <Text style={styles.instructionText}>
+                Paste functionality is disabled. Responses must be original and exactly 25 words.
+              </Text>
+            </View>
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+            <TouchableOpacity
+              style={styles.ctaWrap}
+              onPress={handleSubmit}
+              disabled={words !== 25 || loading}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={words === 25 && !loading ? CTA_GRADIENT_COLORS : ['#4A4A5C', '#3D3D4D']}
+                style={styles.button}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
               >
                 {loading ? (
-                  <ActivityIndicator color={COLORS.text.primary} />
+                  <ActivityIndicator color="#FFF" />
                 ) : (
                   <Text style={styles.buttonText}>Submit Entry</Text>
                 )}
-              </TouchableOpacity>
-            </View>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </GradientBackground>
+
+          <AppFooter />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ScreenShell>
   );
 };
 
 const styles = StyleSheet.create({
-  keyboardView: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: SIZES.padding * 2,
-    justifyContent: 'center',
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SCREEN_PADDING_H,
+    paddingTop: 16,
+    paddingBottom: 40,
   },
   title: {
-    fontSize: 24,
-    color: COLORS.text.primary,
-    fontWeight: 'bold',
-    marginBottom: SIZES.base,
+    fontSize: 22,
+    color: '#FFF',
+    fontWeight: '900',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: COLORS.text.secondary,
-    marginBottom: SIZES.padding * 2,
-    lineHeight: 22,
+    fontSize: 14,
+    color: TEXT_MUTED,
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  card: {
+    backgroundColor: '#1C1F33',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    padding: 16,
+    marginBottom: 16,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: SIZES.base,
+    marginBottom: 12,
+    alignItems: 'center',
   },
   label: {
-    color: COLORS.text.primary,
+    color: '#FFF',
     fontWeight: 'bold',
+    fontSize: 14,
   },
   wordCount: {
-    color: COLORS.text.secondary,
+    color: TEXT_MUTED,
+    fontSize: 13,
   },
   textSuccess: {
-    color: COLORS.feedback.success,
+    color: SUCCESS,
     fontWeight: 'bold',
   },
   textError: {
-    color: COLORS.feedback.error,
+    color: ERROR,
     fontWeight: 'bold',
   },
   inputArea: {
-    backgroundColor: COLORS.glass.input,
-    borderColor: COLORS.glass.border,
+    backgroundColor: INPUT_BG,
+    borderColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    color: COLORS.text.primary,
-    fontSize: 16,
+    borderRadius: 12,
+    padding: 16,
+    color: '#FFF',
+    fontSize: 15,
     minHeight: 150,
     textAlignVertical: 'top',
   },
   instructionBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    marginTop: SIZES.padding,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   instructionText: {
-    color: COLORS.text.secondary,
+    color: TEXT_MUTED,
     fontSize: 12,
     lineHeight: 18,
   },
-  button: {
-    backgroundColor: COLORS.primary.orangeStart,
-    padding: SIZES.padding,
-    borderRadius: SIZES.btnRadius,
-    alignItems: 'center',
-    marginTop: SIZES.padding * 2,
+  ctaWrap: {
+    marginTop: 20,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  buttonDisabled: {
-    backgroundColor: 'rgba(245, 158, 11, 0.4)',
+  button: {
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
   },
   buttonText: {
-    color: COLORS.text.primary,
-    fontSize: 16,
+    color: '#FFF',
+    fontSize: 15,
     fontWeight: 'bold',
+    letterSpacing: 1,
   },
   errorText: {
-    color: COLORS.feedback.error,
-    marginTop: SIZES.base,
+    color: ERROR,
+    marginTop: 12,
     textAlign: 'center',
-  }
+    fontSize: 14,
+  },
 });
 
 export default CreativeSubmissionScreen;

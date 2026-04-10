@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import api from '../services/api';
-import GradientBackground from '../components/GradientBackground';
-import { COLORS, SIZES, GLOBAL_STYLES } from '../theme/constants';
+import ScreenShell from '../components/ScreenShell';
+import AppFooter from '../components/AppFooter';
+import { TEXT_MUTED, ERROR, CTA_GRADIENT_COLORS, INPUT_BG, SCREEN_PADDING_H } from '../theme/neonTheme';
 
 const EmailVerifyScreen = ({ navigation }) => {
   const [otp, setOtp] = useState('');
@@ -23,16 +24,16 @@ const EmailVerifyScreen = ({ navigation }) => {
   };
 
   return (
-    <GradientBackground>
-      <SafeAreaView style={GLOBAL_STYLES.container}>
-        <View style={styles.content}>
+    <ScreenShell>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Verify Email</Text>
           <Text style={styles.subtitle}>Enter the 6-digit code sent to your email.</Text>
-          
+
           <TextInput
             style={styles.input}
             placeholder="000000"
-            placeholderTextColor={COLORS.text.secondary}
+            placeholderTextColor="#555"
             value={otp}
             onChangeText={setOtp}
             keyboardType="number-pad"
@@ -41,69 +42,84 @@ const EmailVerifyScreen = ({ navigation }) => {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <TouchableOpacity
-            style={[styles.button, otp.length !== 6 && styles.buttonDisabled]}
+            style={styles.ctaWrap}
             disabled={otp.length !== 6}
             onPress={handleVerify}
+            activeOpacity={0.85}
           >
-            <Text style={styles.buttonText}>Verify</Text>
+            <LinearGradient
+              colors={otp.length === 6 ? CTA_GRADIENT_COLORS : ['#4A4A5C', '#3D3D4D']}
+              style={styles.button}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.buttonText}>Verify</Text>
+            </LinearGradient>
           </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </GradientBackground>
+
+          <AppFooter />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ScreenShell>
   );
 };
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    padding: SIZES.padding * 2,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SCREEN_PADDING_H,
+    paddingTop: 16,
+    paddingBottom: 40,
     justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
-    color: COLORS.text.primary,
-    fontWeight: 'bold',
-    marginBottom: SIZES.base,
+    fontSize: 22,
+    color: '#FFF',
+    fontWeight: '900',
+    marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
-    color: COLORS.text.secondary,
+    fontSize: 14,
+    color: TEXT_MUTED,
+    lineHeight: 20,
     textAlign: 'center',
-    marginBottom: SIZES.padding * 2,
+    marginBottom: 24,
   },
   input: {
-    backgroundColor: COLORS.glass.input,
-    borderColor: COLORS.glass.border,
+    backgroundColor: INPUT_BG,
     borderWidth: 1,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    color: COLORS.text.primary,
+    borderColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+    padding: 16,
+    color: '#FFF',
     fontSize: 24,
     textAlign: 'center',
-    marginBottom: SIZES.padding,
-    letterSpacing: 4,
+    marginBottom: 16,
+    letterSpacing: 8,
+  },
+  ctaWrap: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 8,
   },
   button: {
-    backgroundColor: COLORS.primary.orangeStart,
-    padding: SIZES.padding,
-    borderRadius: SIZES.btnRadius,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: SIZES.padding,
-  },
-  buttonDisabled: {
-    backgroundColor: 'rgba(245, 158, 11, 0.4)',
   },
   buttonText: {
-    color: COLORS.text.primary,
-    fontSize: 16,
+    color: '#FFF',
+    fontSize: 15,
     fontWeight: 'bold',
+    letterSpacing: 1,
   },
   errorText: {
-    color: COLORS.feedback.error,
+    color: ERROR,
     textAlign: 'center',
-    marginBottom: SIZES.base,
-  }
+    marginBottom: 12,
+    fontSize: 14,
+  },
 });
 
 export default EmailVerifyScreen;
