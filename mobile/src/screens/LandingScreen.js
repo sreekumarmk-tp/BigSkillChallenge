@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
-import { NEON_CYAN, NEON_PURPLE, DARK_BG, CARD_BG, TEXT_MUTED } from '../theme/neonTheme';
+import { NEON_CYAN, NEON_PURPLE, DARK_BG, CARD_BG, TEXT_MUTED, getShadow } from '../theme/neonTheme';
 /** Warm amber blocks — pairs with neon accents on dark UI */
 const COUNTDOWN_AMBER = '#F5C542';
 const COUNTDOWN_NUMBER = '#0B0D17';
@@ -80,7 +80,7 @@ const LandingScreen = ({ navigation }) => {
           <Text style={styles.titleLineTwo}>LUXURY CAR</Text>
 
           <Text style={styles.subtitle}>
-            Answe the prompt - Win the prize - Pure skill
+            Answer the prompt - Win the prize - Pure skill
           </Text>
 
           {/* Timer Card — amber blocks + labels (reference layout), theme-aligned */}
@@ -357,11 +357,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   ctaButtonWrapper: {
-    width: '100%',
-    shadowColor: NEON_CYAN,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
+    ...getShadow(NEON_CYAN, { width: 0, height: 10 }, 0.3, 20),
     elevation: 10,
     marginBottom: 16,
   },

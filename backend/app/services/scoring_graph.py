@@ -166,7 +166,6 @@ def build_scoring_graph():
     builder.add_node("normalization", normalization_node)
 
     # Edges
-    builder.set_entry_point("relevance")
     # Actually wait, set_entry_point can only be one node. To do parallel execution, we can use a fan-out from a dummy start node or add them as parallel branches.
     # A single start node that fans out is better.
     
