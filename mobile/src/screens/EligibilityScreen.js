@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
-import { NEON_CYAN, NEON_PURPLE, CARD_BG, TEXT_MUTED, CTA_GRADIENT_COLORS } from '../theme/neonTheme';
+import { NEON_CYAN, NEON_PURPLE, CARD_BG, TEXT_MUTED, CTA_GRADIENT_COLORS, getShadow } from '../theme/neonTheme';
 
 const Checkbox = ({ isChecked, onPress, label }) => (
   <TouchableOpacity style={styles.checkboxContainer} onPress={onPress} activeOpacity={0.7}>
@@ -213,10 +213,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   ctaButtonWrapper: {
-    shadowColor: NEON_PURPLE,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 15,
+    ...getShadow(NEON_PURPLE, { width: 0, height: 8 }, 0.25, 15),
     elevation: 8,
     marginBottom: 24,
   },

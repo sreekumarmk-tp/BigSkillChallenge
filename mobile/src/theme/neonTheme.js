@@ -2,7 +2,7 @@
  * Shared neon / dark theme (Auth + Landing + Eligibility reference).
  * Use these tokens for colour, typography, and card chrome across screens.
  */
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const NEON_CYAN = '#00F0FF';
 export const NEON_PURPLE = '#A18CFF';
@@ -23,6 +23,26 @@ export const ERROR = '#F87171';
 export const SCREEN_PADDING_H = 24;
 export const SCREEN_PADDING_TOP = 16;
 export const SCREEN_PADDING_BOTTOM = 40;
+
+/**
+ * Helper to handle shadows cross-platform.
+ * React Native Web deprecates shadow* props in favor of boxShadow.
+ */
+export const getShadow = (color, offset = { width: 0, height: 8 }, opacity = 0.25, radius = 15) => {
+  if (Platform.OS === 'web') {
+    // Convert hex to rgba if needed, or just use the hex if it's already a color token
+    // For simplicity with our theme, we use the hex color but web needs the alpha
+    return {
+      boxShadow: `${offset.width}px ${offset.height}px ${radius}px ${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`,
+    };
+  }
+  return {
+    shadowColor: color,
+    shadowOffset: offset,
+    shadowOpacity: opacity,
+    shadowRadius: radius,
+  };
+};
 
 export const neonStyles = StyleSheet.create({
   title: {

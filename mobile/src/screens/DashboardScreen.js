@@ -12,6 +12,7 @@ import {
   TEXT_MUTED,
   CTA_GRADIENT_COLORS,
   SCREEN_PADDING_H,
+  getShadow,
 } from '../theme/neonTheme';
 
 const DashboardScreen = ({ navigation }) => {
@@ -190,10 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
   ctaWrap: {
-    shadowColor: NEON_PURPLE,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 15,
+    ...getShadow(NEON_PURPLE, { width: 0, height: 8 }, 0.25, 15),
     elevation: 8,
     marginBottom: 32,
     borderRadius: 12,

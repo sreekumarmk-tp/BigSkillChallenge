@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppContext } from '../context/AppContext';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
-import { NEON_CYAN, NEON_PURPLE, DARK_BG, INPUT_BG, TEXT_MUTED, CTA_GRADIENT_COLORS } from '../theme/neonTheme';
+import { NEON_CYAN, NEON_PURPLE, DARK_BG, INPUT_BG, TEXT_MUTED, CTA_GRADIENT_COLORS, getShadow } from '../theme/neonTheme';
 
 const AuthScreen = ({ navigation }) => {
   const { login, register } = useContext(AppContext);
@@ -119,94 +119,192 @@ const AuthScreen = ({ navigation }) => {
 
           {/* Form */}
           <View style={styles.formContainer}>
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {Platform.OS === 'web' ? (
+              <form onSubmit={(e) => { e.preventDefault(); handleAuth(); }}>
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            {isRegister && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>FULL NAME</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="John Doe"
-                    placeholderTextColor="#555"
-                    value={fullName}
-                    onChangeText={setFullName}
-                  />
-                  <MaterialCommunityIcons name="badge-account-outline" size={20} color="#555" />
-                </View>
-              </View>
-            )}
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="challenger@arena.com"
-                  placeholderTextColor="#555"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                />
-                <MaterialCommunityIcons name="at" size={20} color="#555" />
-              </View>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>PASSWORD</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••••••"
-                  placeholderTextColor="#555"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-                <MaterialCommunityIcons name="lock-outline" size={20} color="#555" />
-              </View>
-            </View>
-
-            {isRegister && (
-              <View style={styles.checkboxesSection}>
-                <CustomCheckbox 
-                  label="I confirm I am over 18" 
-                  isChecked={isOver18} 
-                  onPress={() => setIsOver18(!isOver18)} 
-                />
-                <CustomCheckbox 
-                  label="I agree to Terms & Conditions" 
-                  isChecked={isAgreedTerms} 
-                  onPress={() => setIsAgreedTerms(!isAgreedTerms)} 
-                />
-                <CustomCheckbox 
-                  label="I understand this is a skill-based competition" 
-                  isChecked={isSkillBased} 
-                  onPress={() => setIsSkillBased(!isSkillBased)} 
-                />
-              </View>
-            )}
-
-            {/* CTA */}
-            <TouchableOpacity 
-              style={styles.ctaButtonWrapper}
-              onPress={handleAuth}
-              disabled={loading}
-            >
-              <LinearGradient
-                colors={CTA_GRADIENT_COLORS}
-                style={styles.ctaButton}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <Text style={styles.ctaText}>{isRegister ? 'CREATE ACCOUNT' : 'LOGIN NOW'}</Text>
+                {isRegister && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>FULL NAME</Text>
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="John Doe"
+                        placeholderTextColor="#555"
+                        value={fullName}
+                        onChangeText={setFullName}
+                        textContentType="name"
+                      />
+                      <MaterialCommunityIcons name="badge-account-outline" size={20} color="#555" />
+                    </View>
+                  </View>
                 )}
-              </LinearGradient>
-            </TouchableOpacity>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="challenger@arena.com"
+                      placeholderTextColor="#555"
+                      value={email}
+                      onChangeText={setEmail}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      textContentType="emailAddress"
+                      autoComplete="email"
+                    />
+                    <MaterialCommunityIcons name="at" size={20} color="#555" />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>PASSWORD</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="••••••••"
+                      placeholderTextColor="#555"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                      textContentType="password"
+                      autoComplete="current-password"
+                    />
+                    <MaterialCommunityIcons name="lock-outline" size={20} color="#555" />
+                  </View>
+                </View>
+
+                {isRegister && (
+                  <View style={styles.checkboxesSection}>
+                    <CustomCheckbox 
+                      label="I confirm I am over 18" 
+                      isChecked={isOver18} 
+                      onPress={() => setIsOver18(!isOver18)} 
+                    />
+                    <CustomCheckbox 
+                      label="I agree to Terms & Conditions" 
+                      isChecked={isAgreedTerms} 
+                      onPress={() => setIsAgreedTerms(!isAgreedTerms)} 
+                    />
+                    <CustomCheckbox 
+                      label="I understand this is a skill-based competition" 
+                      isChecked={isSkillBased} 
+                      onPress={() => setIsSkillBased(!isSkillBased)} 
+                    />
+                  </View>
+                )}
+
+                <TouchableOpacity 
+                  style={styles.ctaButtonWrapper}
+                  onPress={handleAuth}
+                  disabled={loading}
+                >
+                  <LinearGradient
+                    colors={CTA_GRADIENT_COLORS}
+                    style={styles.ctaButton}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFF" />
+                    ) : (
+                      <Text style={styles.ctaText}>{isRegister ? 'CREATE ACCOUNT' : 'LOGIN NOW'}</Text>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </form>
+            ) : (
+              <>
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+                {isRegister && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>FULL NAME</Text>
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="John Doe"
+                        placeholderTextColor="#555"
+                        value={fullName}
+                        onChangeText={setFullName}
+                      />
+                      <MaterialCommunityIcons name="badge-account-outline" size={20} color="#555" />
+                    </View>
+                  </View>
+                )}
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="challenger@arena.com"
+                      placeholderTextColor="#555"
+                      value={email}
+                      onChangeText={setEmail}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                    />
+                    <MaterialCommunityIcons name="at" size={20} color="#555" />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>PASSWORD</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="••••••••"
+                      placeholderTextColor="#555"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                    />
+                    <MaterialCommunityIcons name="lock-outline" size={20} color="#555" />
+                  </View>
+                </View>
+
+                {isRegister && (
+                  <View style={styles.checkboxesSection}>
+                    <CustomCheckbox 
+                      label="I confirm I am over 18" 
+                      isChecked={isOver18} 
+                      onPress={() => setIsOver18(!isOver18)} 
+                    />
+                    <CustomCheckbox 
+                      label="I agree to Terms & Conditions" 
+                      isChecked={isAgreedTerms} 
+                      onPress={() => setIsAgreedTerms(!isAgreedTerms)} 
+                    />
+                    <CustomCheckbox 
+                      label="I understand this is a skill-based competition" 
+                      isChecked={isSkillBased} 
+                      onPress={() => setIsSkillBased(!isSkillBased)} 
+                    />
+                  </View>
+                )}
+
+                <TouchableOpacity 
+                  style={styles.ctaButtonWrapper}
+                  onPress={handleAuth}
+                  disabled={loading}
+                >
+                  <LinearGradient
+                    colors={CTA_GRADIENT_COLORS}
+                    style={styles.ctaButton}
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFF" />
+                    ) : (
+                      <Text style={styles.ctaText}>{isRegister ? 'CREATE ACCOUNT' : 'LOGIN NOW'}</Text>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </>
+            )}
 
             <AppFooter />
           </View>
@@ -351,10 +449,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   ctaButtonWrapper: {
-    shadowColor: NEON_PURPLE,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 15,
+    ...getShadow(NEON_PURPLE, { width: 0, height: 8 }, 0.25, 15),
     elevation: 8,
     marginBottom: 24,
   },
