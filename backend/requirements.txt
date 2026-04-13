@@ -13,9 +13,9 @@ python-dotenv==1.0.1
 aiosmtplib==3.0.1
 sqladmin[full]==0.16.1
 itsdangerous==2.1.2
-langgraph
-langchain-core
+langgraph>=0.2.59
+langchain-core>=0.3.29
 langchain-google-genai
 langchain-groq
-langchain-community
+langchain-community>=0.3.14
 langchain-ollama

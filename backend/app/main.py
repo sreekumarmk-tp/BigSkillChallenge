@@ -1,3 +1,4 @@
+print("Loading main.py...")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
@@ -8,10 +9,10 @@ from app.admin_config import setup_admin
 from starlette.middleware.sessions import SessionMiddleware
 
 # Create tables
-try:
-    models.Base.metadata.create_all(bind=engine)
-except Exception as e:
-    print("Database connection failed. It might not be ready yet.")
+# try:
+#     models.Base.metadata.create_all(bind=engine)
+# except Exception as e:
+#     print("Database connection failed. It might not be ready yet.")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -20,6 +21,12 @@ app = FastAPI(
 
 @app.on_event("startup")
 def startup_event():
+    # Create tables safely on startup
+    try:
+        models.Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Database table creation failed: {e}")
+
     from app.database import SessionLocal
     db = SessionLocal()
     try:
@@ -152,3 +159,7 @@ app.include_router(quiz.router, prefix=f"{settings.API_V1_STR}/quiz", tags=["qui
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Big Skill Challenge API"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
