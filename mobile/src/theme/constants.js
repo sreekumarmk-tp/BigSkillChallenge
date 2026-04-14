@@ -3,7 +3,7 @@ import {
   CARD_BG,
   TEXT_MUTED,
   NEON_CYAN,
-  NEON_PURPLE,
+  NEON_BLUE,
   SUCCESS,
   ERROR,
   INPUT_BG,
@@ -12,12 +12,12 @@ import {
 export const COLORS = {
   background: {
     dark: DARK_BG,
-    mid: '#11162C',
-    light: '#1A203B',
+    mid: '#0D1117',
+    light: '#161B22',
   },
   primary: {
-    orangeStart: NEON_PURPLE,
-    orangeEnd: '#7161FF',
+    blueStart: NEON_BLUE,
+    blueEnd: '#007BFF',
   },
   feedback: {
     success: SUCCESS,

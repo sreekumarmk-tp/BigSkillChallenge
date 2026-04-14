@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
-import { NEON_CYAN, NEON_PURPLE, CARD_BG, TEXT_MUTED, CTA_GRADIENT_COLORS, getShadow } from '../theme/neonTheme';
+import { NEON_CYAN, NEON_BLUE, CARD_BG, TEXT_MUTED, CTA_GRADIENT_COLORS, PREMIUM_GOLD, getShadow, getTextShadow } from '../theme/neonTheme';
 
 const Checkbox = ({ isChecked, onPress, label }) => (
   <TouchableOpacity style={styles.checkboxContainer} onPress={onPress} activeOpacity={0.7}>
@@ -31,16 +31,16 @@ const EligibilityScreen = ({ navigation }) => {
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <View style={styles.logoContainer}>
-              <MaterialCommunityIcons name="shield-check" size={26} color={NEON_PURPLE} />
-              <Text style={styles.logoText}>
-                <Text style={{ color: NEON_CYAN }}>BIG </Text>SKILL CHALLENGE
+              <MaterialCommunityIcons name="shield-check" size={26} color={NEON_BLUE} />
+              <Text style={[styles.logoText, styles.textShadowed]}>
+                <Text style={{ color: PREMIUM_GOLD }}>BIG </Text>AI CHALLENGE
               </Text>
             </View>
-            <Text style={styles.stepLabel}>STEP 3: ELIGIBILITY</Text>
+            <Text style={[styles.stepLabel, styles.textShadowed]}>STEP 3: ELIGIBILITY</Text>
           </View>
         </View>
 
-        <Text style={styles.title}>
+        <Text style={[styles.title, styles.textShadowed]}>
           Entry <Text style={styles.titleAccent}>Eligibility</Text>
         </Text>
         <Text style={styles.subtitle}>
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   titleAccent: {
-    color: NEON_CYAN,
+    color: PREMIUM_GOLD,
   },
   subtitle: {
     color: TEXT_MUTED,
@@ -185,8 +185,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: NEON_PURPLE,
-    borderColor: NEON_PURPLE,
+    backgroundColor: NEON_BLUE,
+    borderColor: NEON_BLUE,
   },
   checkboxLabel: {
     color: TEXT_MUTED,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   ctaButtonWrapper: {
-    ...getShadow(NEON_PURPLE, { width: 0, height: 8 }, 0.25, 15),
+    ...getShadow(NEON_BLUE, { width: 0, height: 8 }, 0.25, 15),
     elevation: 8,
     marginBottom: 24,
   },
@@ -228,9 +228,10 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     color: '#FFF',
-    fontSize: 15,
-    fontWeight: 'bold',
-    letterSpacing: 1,
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
   secureCard: {
     backgroundColor: CARD_BG,
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(161,140,255,0.1)',
+    backgroundColor: 'rgba(0, 150, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -263,6 +264,9 @@ const styles = StyleSheet.create({
     color: TEXT_MUTED,
     fontSize: 12,
     lineHeight: 18,
+  },
+  textShadowed: {
+    ...getTextShadow(0.5, 4),
   },
 });
 

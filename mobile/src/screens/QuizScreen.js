@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { AppContext } from '../context/AppContext';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
-import { NEON_CYAN, CARD_BG, TEXT_MUTED, SCREEN_PADDING_H } from '../theme/neonTheme';
+import { NEON_CYAN, CARD_BG, TEXT_MUTED, SCREEN_PADDING_H, PREMIUM_GOLD, getTextShadow } from '../theme/neonTheme';
 
 const QuizScreen = ({ navigation }) => {
   const { competition, startQuiz, evaluateAnswer, submitQuiz, setQuizPassed } = useContext(AppContext);
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [attemptId, setAttemptId] = useState(null);
+  const [attemptNumber, setAttemptNumber] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [loading, setLoading] = useState(true);
 
@@ -20,6 +21,7 @@ const QuizScreen = ({ navigation }) => {
         const data = await startQuiz(competition.id);
         setQuestions(data.questions);
         setAttemptId(data.attempt_id);
+        setAttemptNumber(data.attempt_number);
         setLoading(false);
       } catch (e) {
         console.log(e);
@@ -37,7 +39,7 @@ const QuizScreen = ({ navigation }) => {
     if (loading || questions.length === 0) return;
 
     if (timeLeft === 0) {
-      navigation.replace('QuizResult', { status: 'timeout' });
+      navigation.replace('QuizResult', { status: 'timeout', attempt_number: attemptNumber });
       return;
     }
     const timerId = setInterval(() => {
@@ -54,7 +56,7 @@ const QuizScreen = ({ navigation }) => {
       const evalResult = await evaluateAnswer(attemptId, currentQuestion.id, selectedOption);
 
       if (!evalResult.is_correct) {
-        navigation.replace('QuizResult', { status: 'incorrect' });
+        navigation.replace('QuizResult', { status: 'incorrect', attempt_number: attemptNumber });
         return;
       }
 
@@ -66,9 +68,9 @@ const QuizScreen = ({ navigation }) => {
         const result = await submitQuiz(attemptId, []);
         if (result.status === 'passed') {
           setQuizPassed(true);
-          navigation.replace('QuizResult', { status: 'success' });
+          navigation.replace('QuizResult', { status: 'success', attempt_number: attemptNumber });
         } else {
-          navigation.replace('QuizResult', { status: 'incorrect' });
+          navigation.replace('QuizResult', { status: 'incorrect', attempt_number: attemptNumber });
         }
       }
     } catch (e) {
@@ -92,15 +94,15 @@ const QuizScreen = ({ navigation }) => {
   return (
     <ScreenShell>
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-        <Text style={styles.timer}>{timeLeft}s</Text>
+        <Text style={[styles.timer, styles.textShadowed]}>{timeLeft}s</Text>
         <View style={styles.progressBarBg}>
           <View style={[styles.progressBarFill, { width: `${(timeLeft / 30) * 100}%` }]} />
         </View>
 
-        <Text style={styles.questionCount}>
+        <Text style={[styles.questionCount, styles.textShadowed]}>
           Question {currentQuestionIdx + 1} of {questions.length}
         </Text>
-        <Text style={styles.question}>{currentQuestion.text}</Text>
+        <Text style={[styles.question, styles.textShadowed]}>{currentQuestion.text}</Text>
 
         <View style={styles.optionsContainer}>
           {['A', 'B', 'C', 'D'].map((opt) => (
@@ -151,7 +153,7 @@ const styles = StyleSheet.create({
     backgroundColor: NEON_CYAN,
   },
   questionCount: {
-    color: NEON_CYAN,
+    color: PREMIUM_GOLD,
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 8,
@@ -180,6 +182,9 @@ const styles = StyleSheet.create({
     color: TEXT_MUTED,
     fontSize: 15,
     lineHeight: 22,
+  },
+  textShadowed: {
+    ...getTextShadow(0.6, 6),
   },
 });
 

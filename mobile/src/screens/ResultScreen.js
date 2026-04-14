@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '../services/api';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
-import { NEON_CYAN, CARD_BG, TEXT_MUTED, SCREEN_PADDING_H } from '../theme/neonTheme';
+import { NEON_CYAN, CARD_BG, TEXT_MUTED, SCREEN_PADDING_H, PREMIUM_GOLD, getTextShadow } from '../theme/neonTheme';
 
 const ResultScreen = ({ route, navigation }) => {
   const { entryId } = route.params;
@@ -59,16 +59,16 @@ const ResultScreen = ({ route, navigation }) => {
           <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12}>
             <MaterialCommunityIcons name="arrow-left" size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>ENTRY-{entryId}</Text>
+          <Text style={[styles.headerTitle, styles.textShadowed]}>ENTRY-{entryId}</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <View style={styles.scoreCircleContainer}>
           <View style={styles.scoreCircle}>
-            <Text style={styles.scoreBig}>{score.total_score}</Text>
+            <Text style={[styles.scoreBig, styles.textShadowed]}>{score.total_score}</Text>
             <Text style={styles.scoreSub}>/ 100</Text>
           </View>
-          <Text style={styles.aiLabel}>AI Evaluation Score</Text>
+          <Text style={[styles.aiLabel, styles.textShadowed]}>AI Evaluation Score</Text>
         </View>
 
         <View style={styles.card}>
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     borderWidth: 3,
-    borderColor: NEON_CYAN,
+    borderColor: PREMIUM_GOLD,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: CARD_BG,
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     color: TEXT_MUTED,
   },
   aiLabel: {
-    color: NEON_CYAN,
+    color: PREMIUM_GOLD,
     fontWeight: 'bold',
     letterSpacing: 1,
     fontSize: 12,
@@ -227,6 +227,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 8,
+  },
+  textShadowed: {
+    ...getTextShadow(0.5, 4),
   },
 });
 

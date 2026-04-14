@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppContext } from '../context/AppContext';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
-import { NEON_CYAN, NEON_PURPLE, DARK_BG, INPUT_BG, TEXT_MUTED, CTA_GRADIENT_COLORS, getShadow } from '../theme/neonTheme';
+import { NEON_CYAN, NEON_BLUE, DARK_BG, INPUT_BG, TEXT_MUTED, CTA_GRADIENT_COLORS, PREMIUM_GOLD, getShadow, getTextShadow } from '../theme/neonTheme';
 
 const AuthScreen = ({ navigation }) => {
   const { login, register } = useContext(AppContext);
@@ -91,12 +91,12 @@ const AuthScreen = ({ navigation }) => {
           
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <MaterialCommunityIcons name="shield-check" size={26} color={NEON_PURPLE} />
-              <Text style={styles.logoText}>
-                <Text style={{color: NEON_CYAN}}>BIG </Text>SKILL CHALLENGE
+              <MaterialCommunityIcons name="shield-check" size={26} color={NEON_BLUE} />
+              <Text style={[styles.logoText, styles.textShadowed]}>
+                <Text style={{color: PREMIUM_GOLD}}>BIG </Text>AI CHALLENGE
               </Text>
             </View>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, styles.textShadowed]}>
               {isRegister ? 'Create your account to enter the\nchallenge' : 'Log in to your account to continue'}
             </Text>
           </View>
@@ -441,15 +441,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: NEON_PURPLE,
-    borderColor: NEON_PURPLE,
+    backgroundColor: NEON_BLUE,
+    borderColor: NEON_BLUE,
   },
   checkboxLabel: {
     color: TEXT_MUTED,
     fontSize: 13,
   },
   ctaButtonWrapper: {
-    ...getShadow(NEON_PURPLE, { width: 0, height: 8 }, 0.25, 15),
+    ...getShadow(NEON_BLUE, { width: 0, height: 8 }, 0.25, 15),
     elevation: 8,
     marginBottom: 24,
   },
@@ -465,6 +465,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     letterSpacing: 1,
+  },
+  textShadowed: {
+    ...getTextShadow(0.5, 4),
   },
 });
 

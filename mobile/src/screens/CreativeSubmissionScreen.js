@@ -5,7 +5,7 @@ import { AppContext } from '../context/AppContext';
 import api from '../services/api';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
-import { TEXT_MUTED, ERROR, SUCCESS, CTA_GRADIENT_COLORS, INPUT_BG, SCREEN_PADDING_H } from '../theme/neonTheme';
+import { TEXT_MUTED, ERROR, SUCCESS, CTA_GRADIENT_COLORS, INPUT_BG, SCREEN_PADDING_H, PREMIUM_GOLD, getTextShadow } from '../theme/neonTheme';
 
 const countWords = (str) => str.trim().split(/\s+/).filter((word) => word.length > 0).length;
 
@@ -40,8 +40,8 @@ const CreativeSubmissionScreen = ({ navigation }) => {
     <ScreenShell>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <Text style={styles.title}>Creative Hurdle</Text>
-          <Text style={styles.subtitle}>In exactly 25 words, tell us why you should win this prize.</Text>
+          <Text style={[styles.title, styles.textShadowed]}>Creative Hurdle</Text>
+          <Text style={[styles.subtitle, styles.textShadowed]}>In exactly 25 words, tell us why you should win this OpenAI subscription.</Text>
 
           <View style={styles.card}>
             <View style={styles.headerRow}>
@@ -55,7 +55,7 @@ const CreativeSubmissionScreen = ({ navigation }) => {
               style={styles.inputArea}
               multiline
               numberOfLines={8}
-              placeholder="Start typing..."
+              placeholder="Share your vision for Agentic AI..."
               placeholderTextColor="#555"
               value={text}
               onChangeText={setText}
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   card: {
-    backgroundColor: '#1C1F33',
+    backgroundColor: '#141726',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
@@ -190,10 +190,23 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   errorText: {
-    color: ERROR,
-    marginTop: 12,
-    textAlign: 'center',
     fontSize: 14,
+  },
+  textShadowed: {
+    ...getTextShadow(0.5, 4),
+  },
+  textSuccess: {
+    color: SUCCESS,
+    fontWeight: 'bold',
+  },
+  textError: {
+    color: ERROR,
+    fontWeight: 'bold',
+  },
+  wordCount: {
+    color: PREMIUM_GOLD,
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
 

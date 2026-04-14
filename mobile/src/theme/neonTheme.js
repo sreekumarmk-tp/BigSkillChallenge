@@ -5,17 +5,20 @@
 import { StyleSheet, Platform } from 'react-native';
 
 export const NEON_CYAN = '#00F0FF';
-export const NEON_PURPLE = '#A18CFF';
-export const DARK_BG = '#0B0D17';
-export const CARD_BG = '#1C1F33';
+export const NEON_BLUE = '#0096FF';
+export const DARK_BG = '#090B12';
+export const CARD_BG = '#141726';
 export const TEXT_MUTED = '#9CA3AF';
 export const INPUT_BG = '#000000';
+export const PREMIUM_GOLD = '#F5C542'; // Vibrant Gold/Amber for primary highlights
+export const GOLD_ACCENT = '#D4AF37'; // Deeper Metallic Gold for borders/subtle accents
+export const GOLD_GRADIENT = ['#F5C542', '#D4AF37', '#996515'];
 
-/** Top fade overlay — same as AuthScreen */
-export const GRADIENT_TOP_COLORS = ['rgba(31, 28, 67, 0.4)', 'rgba(0,0,0,0)', DARK_BG];
+/** Top fade overlay */
+export const GRADIENT_TOP_COLORS = ['rgba(0, 118, 255, 0.2)', 'rgba(0,0,0,0)', DARK_BG];
 
-/** Primary CTA — same as AuthScreen */
-export const CTA_GRADIENT_COLORS = ['#8B7BFF', '#7161FF'];
+/** Primary CTA */
+export const CTA_GRADIENT_COLORS = ['#00F0FF', '#007BFF'];
 
 export const SUCCESS = '#4ADE80';
 export const ERROR = '#F87171';
@@ -43,6 +46,15 @@ export const getShadow = (color, offset = { width: 0, height: 8 }, opacity = 0.2
     shadowRadius: radius,
   };
 };
+
+/**
+ * Text shadow utility for readability over complex backgrounds/images.
+ */
+export const getTextShadow = (opacity = 0.8, radius = 5, offset = { width: 0, height: 2 }) => ({
+  textShadowColor: `rgba(0, 0, 0, ${opacity})`,
+  textShadowOffset: offset,
+  textShadowRadius: radius,
+});
 
 export const neonStyles = StyleSheet.create({
   title: {
@@ -110,5 +122,11 @@ export const neonStyles = StyleSheet.create({
     paddingHorizontal: SCREEN_PADDING_H,
     paddingTop: SCREEN_PADDING_TOP,
     paddingBottom: SCREEN_PADDING_BOTTOM,
+  },
+  textShadowed: {
+    ...getTextShadow(),
+  },
+  goldText: {
+    color: PREMIUM_GOLD,
   },
 });

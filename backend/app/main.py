@@ -33,9 +33,9 @@ def startup_event():
         comp = db.query(models.Competition).first()
         if not comp:
             default_comp = models.Competition(
-                title="Big Skill Challenge - BMW X5",
-                description="Win a brand new BMW X5 by testing your skills.",
-                entry_fee=2.99,
+                title="Big AI Challenge",
+                description="Win a 1-year OpenAI subscription by proving your skills in GenAI, RAG, and Agentic workflows.",
+                entry_fee=5.00,
                 is_active=True
             )
             db.add(default_comp)

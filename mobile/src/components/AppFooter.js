@@ -6,7 +6,7 @@ import { NEON_CYAN, TEXT_MUTED } from '../theme/neonTheme';
 const AppFooter = () => (
   <View style={styles.footer}>
     <Text style={[styles.logoText, styles.footerLogoSize]}>
-      <Text style={{ color: NEON_CYAN }}>BIG </Text>SKILL CHALLENGE
+      <Text style={{ color: NEON_CYAN }}>BIG </Text>AI CHALLENGE
     </Text>
     <Text style={styles.footerCopyright}>© 2026. PURE SKILL ONLY.</Text>
   </View>

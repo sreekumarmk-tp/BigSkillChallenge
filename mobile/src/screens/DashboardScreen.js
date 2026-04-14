@@ -7,12 +7,13 @@ import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
 import {
   NEON_CYAN,
-  NEON_PURPLE,
+  NEON_BLUE,
   CARD_BG,
   TEXT_MUTED,
   CTA_GRADIENT_COLORS,
   SCREEN_PADDING_H,
   getShadow,
+  getTextShadow,
 } from '../theme/neonTheme';
 
 const DashboardScreen = ({ navigation }) => {
@@ -65,7 +66,7 @@ const DashboardScreen = ({ navigation }) => {
         }
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Your Dashboard</Text>
+          <Text style={[styles.title, styles.textShadowed]}>Your Dashboard</Text>
           <TouchableOpacity onPress={handleLogout}>
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
@@ -74,7 +75,7 @@ const DashboardScreen = ({ navigation }) => {
         <View style={styles.statsCard}>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>{attempts.length}</Text>
-            <Text style={styles.statLabel}>Quiz Attempts</Text>
+            <Text style={styles.statLabel}>AI Challenges</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
@@ -86,7 +87,7 @@ const DashboardScreen = ({ navigation }) => {
         {attempts.some((a) => a.status === 'pending') ? (
           <TouchableOpacity style={styles.ctaWrap} onPress={() => navigation.navigate('Quiz')}>
             <LinearGradient colors={CTA_GRADIENT_COLORS} style={styles.newEntryBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Text style={styles.newEntryBtnText}>RESUME YOUR QUIZ</Text>
+              <Text style={styles.newEntryBtnText}>RESUME AI CHALLENGE</Text>
             </LinearGradient>
           </TouchableOpacity>
         ) : (
@@ -103,7 +104,7 @@ const DashboardScreen = ({ navigation }) => {
               end={{ x: 1, y: 0 }}
             >
               <Text style={styles.newEntryBtnText}>
-                {attempts.length >= 10 ? 'MAX ATTEMPTS USED' : '+ START NEW ENTRY'}
+                {attempts.length >= 10 ? 'MAX CHALLENGES USED' : '+ START NEW AI CHALLENGE'}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -191,22 +192,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
   ctaWrap: {
-    ...getShadow(NEON_PURPLE, { width: 0, height: 8 }, 0.25, 15),
+    ...getShadow(NEON_BLUE, { width: 0, height: 8 }, 0.25, 15),
     elevation: 8,
     marginBottom: 32,
     borderRadius: 12,
     overflow: 'hidden',
   },
   newEntryBtn: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    borderRadius: 18,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   newEntryBtnText: {
     color: '#FFF',
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    fontSize: 16,
+    textTransform: 'uppercase',
   },
   btnDisabled: {
     opacity: 0.5,
@@ -250,11 +254,14 @@ const styles = StyleSheet.create({
     color: NEON_CYAN,
   },
   statusPending: {
-    color: NEON_PURPLE,
+    color: '#00F0FF',
   },
   entryDate: {
     color: TEXT_MUTED,
     fontSize: 12,
+  },
+  textShadowed: {
+    ...getTextShadow(0.5, 4),
   },
 });
 
