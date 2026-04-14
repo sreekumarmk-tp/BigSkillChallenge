@@ -134,6 +134,7 @@ const AuthScreen = ({ navigation }) => {
                         value={fullName}
                         onChangeText={setFullName}
                         textContentType="name"
+                        underlineColorAndroid="transparent"
                       />
                       <MaterialCommunityIcons name="badge-account-outline" size={20} color="#555" />
                     </View>
@@ -153,6 +154,7 @@ const AuthScreen = ({ navigation }) => {
                       keyboardType="email-address"
                       textContentType="emailAddress"
                       autoComplete="email"
+                      underlineColorAndroid="transparent"
                     />
                     <MaterialCommunityIcons name="at" size={20} color="#555" />
                   </View>
@@ -170,6 +172,7 @@ const AuthScreen = ({ navigation }) => {
                       secureTextEntry
                       textContentType="password"
                       autoComplete="current-password"
+                      underlineColorAndroid="transparent"
                     />
                     <MaterialCommunityIcons name="lock-outline" size={20} color="#555" />
                   </View>
@@ -228,6 +231,7 @@ const AuthScreen = ({ navigation }) => {
                         placeholderTextColor="#555"
                         value={fullName}
                         onChangeText={setFullName}
+                        underlineColorAndroid="transparent"
                       />
                       <MaterialCommunityIcons name="badge-account-outline" size={20} color="#555" />
                     </View>
@@ -245,6 +249,7 @@ const AuthScreen = ({ navigation }) => {
                       onChangeText={setEmail}
                       autoCapitalize="none"
                       keyboardType="email-address"
+                      underlineColorAndroid="transparent"
                     />
                     <MaterialCommunityIcons name="at" size={20} color="#555" />
                   </View>
@@ -260,6 +265,7 @@ const AuthScreen = ({ navigation }) => {
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry
+                      underlineColorAndroid="transparent"
                     />
                     <MaterialCommunityIcons name="lock-outline" size={20} color="#555" />
                   </View>
@@ -419,6 +425,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 15,
     height: '100%',
+    outlineStyle: 'none',
   },
   checkboxesSection: {
     marginTop: 8,

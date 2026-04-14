@@ -61,19 +61,20 @@ const PaymentScreen = ({ navigation }) => {
               placeholder="0000 0000 0000 0000"
               placeholderTextColor="#555"
               keyboardType="numeric"
+              underlineColorAndroid="transparent"
             />
             <View style={styles.row}>
               <View style={styles.halfCol}>
                 <Text style={styles.inputLabel}>EXPIRY</Text>
-                <TextInput style={styles.input} placeholder="MM/YY" placeholderTextColor="#555" />
+                <TextInput style={styles.input} placeholder="MM/YY" placeholderTextColor="#555" underlineColorAndroid="transparent" />
               </View>
               <View style={styles.halfCol}>
                 <Text style={styles.inputLabel}>CVC</Text>
-                <TextInput style={styles.input} placeholder="•••" placeholderTextColor="#555" keyboardType="numeric" />
+                <TextInput style={styles.input} placeholder="•••" placeholderTextColor="#555" keyboardType="numeric" underlineColorAndroid="transparent" />
               </View>
             </View>
             <Text style={styles.inputLabel}>NAME ON CARD</Text>
-            <TextInput style={styles.input} placeholder="As shown on card" placeholderTextColor="#555" />
+            <TextInput style={styles.input} placeholder="As shown on card" placeholderTextColor="#555" underlineColorAndroid="transparent" />
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -173,6 +174,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 15,
     marginBottom: 16,
+    outlineStyle: 'none',
   },
   row: {
     flexDirection: 'row',

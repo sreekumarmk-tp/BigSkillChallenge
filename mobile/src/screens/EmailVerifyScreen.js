@@ -38,6 +38,7 @@ const EmailVerifyScreen = ({ navigation }) => {
             onChangeText={setOtp}
             keyboardType="number-pad"
             maxLength={6}
+            underlineColorAndroid="transparent"
           />
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -97,6 +98,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
     letterSpacing: 8,
+    outlineStyle: 'none',
   },
   ctaWrap: {
     borderRadius: 12,

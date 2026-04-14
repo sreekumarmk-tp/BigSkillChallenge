@@ -97,6 +97,7 @@ export const neonStyles = StyleSheet.create({
     height: 56,
     color: '#FFF',
     fontSize: 15,
+    outlineStyle: 'none',
   },
   inputLabel: {
     color: '#FFF',

@@ -45,12 +45,17 @@ class CompetitionAdmin(ModelView, model=Competition):
     icon = "fa-solid fa-trophy"
 
 class EntryAdmin(ModelView, model=Entry):
-    column_list = [Entry.id, Entry.user_id, Entry.competition_id, Entry.status, Entry.is_shortlisted, Entry.is_winner, Entry.created_at]
+    column_list = [Entry.id, Entry.user_id, Entry.competition_id, Entry.status, Entry.is_shortlisted, Entry.is_winner, Entry.created_at, "score.total_score"]
     column_details_list = [Entry.id, Entry.user_id, Entry.competition_id, Entry.content, Entry.status, Entry.is_shortlisted, Entry.is_winner, Entry.created_at]
+    column_sortable_list = [Entry.id, Entry.user_id, Entry.status, Entry.is_shortlisted, Entry.is_winner, Entry.created_at, "score.total_score"]
+    column_labels = {"score.total_score": "Total Score"}
     name_plural = "Entries"
     icon = "fa-solid fa-file-pen"
     can_edit = True
     can_create = False
+    can_delete = False
+    can_view_details = False
+    column_display_actions = False
 
     def get_list_query(self, request):
         from sqlalchemy import select, desc
@@ -75,10 +80,17 @@ class EntryAdmin(ModelView, model=Entry):
         return query
 
 class ScoreAdmin(ModelView, model=Score):
-    column_list = [Score.id, Score.entry_id, Score.total_score, Score.relevance_score, Score.creativity_score]
+    column_list = [Score.id, Score.entry_id, Score.total_score, Score.relevance_score, Score.creativity_score, Score.clarity_score, Score.impact_score]
+    column_sortable_list = [Score.id, Score.entry_id, Score.total_score, Score.relevance_score, Score.creativity_score, Score.clarity_score, Score.impact_score]
     column_default_sort = [(Score.total_score, True)]  # Show top scores first
     name_plural = "Leaderboard" # Renaming Score to Leaderboard as requested
     icon = "fa-solid fa-ranking-star"
+    can_create = False
+    can_edit = False
+    can_delete = False
+    can_view_details = False
+    column_display_actions = False
+
 
 class QuestionAdmin(ModelView, model=Question):
     column_list = [Question.id, Question.text, Question.correct_answer]
@@ -90,6 +102,11 @@ class QuizAttemptAdmin(ModelView, model=QuizAttempt):
     name_plural = "Quiz Attempts"
     icon = "fa-solid fa-clipboard-check"
     can_create = False
+    can_edit = False
+    can_delete = False
+    can_view_details = False
+    column_display_actions = False
+
 
 def setup_admin(app):
     admin = Admin(app, engine, authentication_backend=authentication_backend)

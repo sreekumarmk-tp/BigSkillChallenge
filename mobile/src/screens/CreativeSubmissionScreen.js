@@ -61,6 +61,7 @@ const CreativeSubmissionScreen = ({ navigation }) => {
               onChangeText={setText}
               contextMenuHidden
               autoCorrect={false}
+              underlineColorAndroid="transparent"
             />
 
             <View style={styles.instructionBox}>
@@ -159,6 +160,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     minHeight: 150,
     textAlignVertical: 'top',
+    outlineStyle: 'none',
   },
   instructionBox: {
     backgroundColor: 'rgba(255,255,255,0.03)',

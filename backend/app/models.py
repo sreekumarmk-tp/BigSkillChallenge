@@ -18,6 +18,9 @@ class User(Base):
     
     payments = relationship("Payment", back_populates="user")
     entries = relationship("Entry", back_populates="user")
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.email})"
 
 class Competition(Base):
     __tablename__ = "competitions"
@@ -30,6 +33,9 @@ class Competition(Base):
     
     payments = relationship("Payment", back_populates="competition")
     entries = relationship("Entry", back_populates="competition")
+    
+    def __str__(self):
+        return self.title
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -44,6 +50,9 @@ class Payment(Base):
     
     user = relationship("User", back_populates="payments")
     competition = relationship("Competition", back_populates="payments")
+    
+    def __str__(self):
+        return f"Payment of ${self.amount} ({self.status})"
 
 class Entry(Base):
     __tablename__ = "entries"
@@ -60,6 +69,9 @@ class Entry(Base):
     user = relationship("User", back_populates="entries")
     competition = relationship("Competition", back_populates="entries")
     score = relationship("Score", back_populates="entry", uselist=False)
+    
+    def __str__(self):
+        return f"Entry {self.id} by {self.user.email if self.user else 'Unknown'}"
 
 class Score(Base):
     __tablename__ = "scores"
@@ -74,6 +86,9 @@ class Score(Base):
     feedback = Column(Text)
     
     entry = relationship("Entry", back_populates="score")
+    
+    def __str__(self):
+        return f"Score: {self.total_score}"
 
 class Question(Base):
     __tablename__ = "questions"
@@ -85,6 +100,9 @@ class Question(Base):
     option_c = Column(String(200))
     option_d = Column(String(200))
     correct_answer = Column(String(1)) # A, B, C, or D
+    
+    def __str__(self):
+        return self.text[:50] + "..." if len(self.text) > 50 else self.text
 
 class QuizAttempt(Base):
     __tablename__ = "quiz_attempts"
@@ -99,3 +117,6 @@ class QuizAttempt(Base):
     
     user = relationship("User")
     competition = relationship("Competition")
+    
+    def __str__(self):
+        return f"Attempt {self.attempt_number} ({self.status}) - Score: {self.score}"
