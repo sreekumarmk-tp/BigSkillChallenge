@@ -54,6 +54,7 @@ class Entry(Base):
     content = Column(Text) # The 25 word response
     status = Column(String(20), default="submitted") # submitted, scored
     is_winner = Column(Boolean, default=False)
+    is_shortlisted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User", back_populates="entries")

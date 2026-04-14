@@ -9,16 +9,10 @@ from app.api import deps
 
 router = APIRouter()
 
-@router.get("/questions", response_model=List[schemas.QuestionResponse])
-def get_quiz_questions(
-    *,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user),
-    competition_id: int,
-) -> Any:
-    # Check current attempts
+def check_attempt_eligibility(db: Session, user_id: int, competition_id: int):
+    # 1. Check 10-attempt limit
     attempts_count = db.query(models.QuizAttempt).filter(
-        models.QuizAttempt.user_id == current_user.id,
+        models.QuizAttempt.user_id == user_id,
         models.QuizAttempt.competition_id == competition_id
     ).count()
     
@@ -27,6 +21,37 @@ def get_quiz_questions(
             status_code=400,
             detail="Maximum 10 attempts reached"
         )
+        
+    # 2. Check for unused payment
+    payments_count = db.query(models.Payment).filter(
+        models.Payment.user_id == user_id,
+        models.Payment.competition_id == competition_id,
+        models.Payment.status == "completed"
+    ).count()
+    
+    finished_attempts_count = db.query(models.QuizAttempt).filter(
+        models.QuizAttempt.user_id == user_id,
+        models.QuizAttempt.competition_id == competition_id,
+        models.QuizAttempt.status.in_(["passed", "failed"])
+    ).count()
+    
+    if payments_count <= finished_attempts_count:
+        raise HTTPException(
+            status_code=402,
+            detail="Payment required for new attempt. Please pay to try again."
+        )
+    
+    return attempts_count
+
+@router.get("/questions", response_model=List[schemas.QuestionResponse])
+def get_quiz_questions(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+    competition_id: int,
+) -> Any:
+    # Check eligibility (10-attempt limit and payment)
+    attempts_count = check_attempt_eligibility(db, current_user.id, competition_id)
     
     # Pick random 5 questions
     questions = db.query(models.Question).order_by(func.random()).limit(5).all()
@@ -67,17 +92,8 @@ def start_quiz(
         db.commit()
         db.refresh(attempt)
     else:
-        # Check current attempts
-        attempts_count = db.query(models.QuizAttempt).filter(
-            models.QuizAttempt.user_id == current_user.id,
-            models.QuizAttempt.competition_id == attempt_in.competition_id
-        ).count()
-        
-        if attempts_count >= 10:
-            raise HTTPException(
-                status_code=400,
-                detail="Maximum 10 attempts reached"
-            )
+        # Check eligibility (10-attempt limit and payment)
+        attempts_count = check_attempt_eligibility(db, current_user.id, attempt_in.competition_id)
         
         # Create new attempt record
         attempt = models.QuizAttempt(
