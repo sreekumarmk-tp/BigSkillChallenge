@@ -79,7 +79,8 @@ def start_quiz(
     current_user: models.User = Depends(deps.get_current_active_user),
     attempt_in: schemas.QuizAttemptCreate,
 ) -> Any:
-    # Check for an existing pending attempt
+    # If there is an unfinished pending attempt, treat it as timed out.
+    # This ensures timed-out attempts are recorded as failed and consume an attempt.
     pending_attempt = db.query(models.QuizAttempt).filter(
         models.QuizAttempt.user_id == current_user.id,
         models.QuizAttempt.competition_id == attempt_in.competition_id,
@@ -87,24 +88,22 @@ def start_quiz(
     ).first()
     
     if pending_attempt:
-        attempt = pending_attempt
-        attempt.score = 0
+        pending_attempt.status = "failed"
         db.commit()
-        db.refresh(attempt)
-    else:
-        # Check eligibility (10-attempt limit and payment)
-        attempts_count = check_attempt_eligibility(db, current_user.id, attempt_in.competition_id)
-        
-        # Create new attempt record
-        attempt = models.QuizAttempt(
-            user_id=current_user.id,
-            competition_id=attempt_in.competition_id,
-            attempt_number=attempts_count + 1,
-            status="pending"
-        )
-        db.add(attempt)
-        db.commit()
-        db.refresh(attempt)
+    
+    # Check eligibility (10-attempt limit and payment)
+    attempts_count = check_attempt_eligibility(db, current_user.id, attempt_in.competition_id)
+    
+    # Create new attempt record
+    attempt = models.QuizAttempt(
+        user_id=current_user.id,
+        competition_id=attempt_in.competition_id,
+        attempt_number=attempts_count + 1,
+        status="pending"
+    )
+    db.add(attempt)
+    db.commit()
+    db.refresh(attempt)
     
     # Pick random 5 questions
     questions = db.query(models.Question).order_by(func.random()).limit(5).all()
@@ -185,4 +184,14 @@ def get_user_attempts(
         models.QuizAttempt.user_id == current_user.id,
         models.QuizAttempt.competition_id == competition_id
     ).all()
+    return attempts
+
+@router.get("/attempts-all/me", response_model=List[schemas.QuizAttemptResponse])
+def get_my_all_attempts(
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    attempts = db.query(models.QuizAttempt).filter(
+        models.QuizAttempt.user_id == current_user.id
+    ).order_by(models.QuizAttempt.created_at.desc()).all()
     return attempts

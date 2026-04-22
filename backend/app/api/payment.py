@@ -37,3 +37,14 @@ async def process_mock_payment(
     db.commit()
     db.refresh(payment)
     return payment
+
+@router.get("/me", response_model=list[schemas.PaymentResponse])
+def get_my_payments(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Return all payments made by the current user.
+    """
+    return db.query(models.Payment).filter(models.Payment.user_id == current_user.id).all()

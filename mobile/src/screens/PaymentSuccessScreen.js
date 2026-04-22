@@ -1,12 +1,28 @@
-import React from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { AppContext } from '../context/AppContext';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
 import { TEXT_MUTED, SUCCESS, CTA_GRADIENT_COLORS, CARD_BG, SCREEN_PADDING_H } from '../theme/neonTheme';
 
 const PaymentSuccessScreen = ({ route, navigation }) => {
+  const { paymentStatus, setPaymentStatus } = useContext(AppContext);
+  const hasValidatedAccess = useRef(false);
   const { transactionId } = route.params || {};
+
+  useEffect(() => {
+    if (hasValidatedAccess.current) return;
+    hasValidatedAccess.current = true;
+
+    if (!paymentStatus) {
+      navigation.replace('Payment');
+      return;
+    }
+
+    // Consume access immediately so this screen cannot be re-opened from other pages.
+    setPaymentStatus(false);
+  }, [navigation, paymentStatus, setPaymentStatus]);
 
   return (
     <ScreenShell>

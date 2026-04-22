@@ -85,11 +85,21 @@ class EntryResponse(BaseModel):
     competition_id: int
     content: str
     status: str
+    is_shortlisted: bool
+    is_winner: bool
     created_at: datetime
     score: Optional[ScoreResponse] = None
     
     class Config:
         from_attributes = True
+
+class EntryPercentileResponse(BaseModel):
+    entry_id: int
+    competition_id: int
+    total_entries: int
+    rank: int
+    top_percentage: float
+    percentile: float
 
 # --- Quiz Schemas ---
 class QuestionResponse(BaseModel):

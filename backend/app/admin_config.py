@@ -57,7 +57,7 @@ class EntryAdmin(ModelView, model=Entry):
     can_view_details = False
     column_display_actions = False
 
-    def get_list_query(self, request):
+    def list_query(self, request):
         from sqlalchemy import select, desc
         from app.models import Score
         
@@ -72,7 +72,7 @@ class EntryAdmin(ModelView, model=Entry):
         )
         return query
 
-    def get_count_query(self, request):
+    def count_query(self, request):
         from sqlalchemy import select, func
         from app.models import Score
         # Count of unique users who have scored entries
@@ -80,9 +80,20 @@ class EntryAdmin(ModelView, model=Entry):
         return query
 
 class ScoreAdmin(ModelView, model=Score):
-    column_list = [Score.id, Score.entry_id, Score.total_score, Score.relevance_score, Score.creativity_score, Score.clarity_score, Score.impact_score]
+    column_list = [
+        Score.id,
+        Score.entry_id,
+        "entry.is_shortlisted",
+        "entry.status",
+        Score.total_score,
+        Score.relevance_score,
+        Score.creativity_score,
+        Score.clarity_score,
+        Score.impact_score,
+    ]
     column_sortable_list = [Score.id, Score.entry_id, Score.total_score, Score.relevance_score, Score.creativity_score, Score.clarity_score, Score.impact_score]
     column_default_sort = [(Score.total_score, True)]  # Show top scores first
+    column_labels = {"entry.is_shortlisted": "Shortlisted", "entry.status": "Entry Status"}
     name_plural = "Leaderboard" # Renaming Score to Leaderboard as requested
     icon = "fa-solid fa-ranking-star"
     can_create = False
@@ -90,6 +101,27 @@ class ScoreAdmin(ModelView, model=Score):
     can_delete = False
     can_view_details = False
     column_display_actions = False
+
+    def list_query(self, request):
+        from sqlalchemy import select
+        from app.models import Entry
+
+        return (
+            select(Score)
+            .join(Entry, Score.entry_id == Entry.id)
+            .where((Entry.is_shortlisted == True) | (Entry.status == "shortlisted"))
+            .order_by(Score.total_score.desc())
+        )
+
+    def count_query(self, request):
+        from sqlalchemy import select, func
+        from app.models import Entry
+
+        return (
+            select(func.count(Score.id))
+            .join(Entry, Score.entry_id == Entry.id)
+            .where((Entry.is_shortlisted == True) | (Entry.status == "shortlisted"))
+        )
 
 
 class QuestionAdmin(ModelView, model=Question):
