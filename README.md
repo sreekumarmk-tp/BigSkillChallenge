@@ -59,7 +59,9 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 
 # Install dependencies (including aiosmtplib for emails)
-pip install -r requirements.txt
+# Recommended: Use `uv` for much faster dependency resolution
+pip install uv
+uv pip install -r requirements.txt
 
 # Start the FastAPI server (auto-creates DB tables on launch)
 uvicorn app.main:app --reload --port 8000

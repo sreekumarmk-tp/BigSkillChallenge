@@ -25,7 +25,7 @@ function getTimeLeft(endDate) {
 }
 
 const LandingScreen = ({ navigation }) => {
-  const { userToken } = useContext(AppContext);
+  const { userToken, isEmailVerified } = useContext(AppContext);
   const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(COMPETITION_END));
   
   // Animation values
@@ -48,10 +48,10 @@ const LandingScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    if (userToken) {
+    if (userToken && isEmailVerified) {
       navigation.navigate('Dashboard');
     }
-  }, [userToken, navigation]);
+  }, [userToken, isEmailVerified, navigation]);
 
   useEffect(() => {
     const tick = () => setTimeLeft(getTimeLeft(COMPETITION_END));

@@ -7,6 +7,7 @@ export const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
+  const [isEmailVerified, setIsEmailVerified] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [competition, setCompetition] = useState(null);
   const [quizPassed, setQuizPassed] = useState(false);
@@ -21,7 +22,10 @@ export const AppProvider = ({ children }) => {
     try {
       setIsLoading(true);
       let token = await AsyncStorage.getItem('userToken');
+      const emailVerified = await AsyncStorage.getItem('isEmailVerified');
       setUserToken(token);
+      // Backward compatibility for existing sessions that predate this key.
+      setIsEmailVerified(emailVerified === null ? true : emailVerified === 'true');
       setIsLoading(false);
     } catch (e) {
       console.log(`isLoggedIn error ${e}`);
@@ -54,7 +58,9 @@ export const AppProvider = ({ children }) => {
       });
       const token = response.data.access_token;
       setUserToken(token);
+      setIsEmailVerified(true);
       await AsyncStorage.setItem('userToken', token);
+      await AsyncStorage.setItem('isEmailVerified', 'true');
     } catch (e) {
       console.log(`login error ${e}`);
       throw e;
@@ -72,8 +78,11 @@ export const AppProvider = ({ children }) => {
           last_name: lastName
       });
       const token = response.data.access_token;
+      const emailVerified = response.data.is_active ?? false;
       setUserToken(token);
+      setIsEmailVerified(emailVerified);
       await AsyncStorage.setItem('userToken', token);
+      await AsyncStorage.setItem('isEmailVerified', emailVerified ? 'true' : 'false');
       return response.data;
     } catch (e) {
       console.log(`register error ${e}`);
@@ -86,8 +95,15 @@ export const AppProvider = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     setUserToken(null);
+    setIsEmailVerified(true);
     await AsyncStorage.removeItem('userToken');
+    await AsyncStorage.removeItem('isEmailVerified');
     setIsLoading(false);
+  };
+
+  const markEmailVerified = async () => {
+    setIsEmailVerified(true);
+    await AsyncStorage.setItem('isEmailVerified', 'true');
   };
   
   const processPayment = async (amount) => {
@@ -156,6 +172,8 @@ export const AppProvider = ({ children }) => {
         isLoading,
         userToken,
         userInfo,
+        isEmailVerified,
+        markEmailVerified,
         competition,
         quizPassed,
         setQuizPassed,

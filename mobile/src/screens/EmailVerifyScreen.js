@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../services/api';
+import { AppContext } from '../context/AppContext';
 import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
 import { TEXT_MUTED, ERROR, CTA_GRADIENT_COLORS, INPUT_BG, SCREEN_PADDING_H } from '../theme/neonTheme';
 
 const EmailVerifyScreen = ({ navigation }) => {
+  const { markEmailVerified } = useContext(AppContext);
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
 
@@ -17,6 +19,7 @@ const EmailVerifyScreen = ({ navigation }) => {
     }
     try {
       await api.post('/auth/verify-email', { otp });
+      await markEmailVerified();
       navigation.navigate('Eligibility');
     } catch (e) {
       setError('Invalid verification code.');
