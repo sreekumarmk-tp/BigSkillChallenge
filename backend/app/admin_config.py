@@ -40,7 +40,14 @@ class UserAdmin(ModelView, model=User):
     icon = "fa-solid fa-user"
 
 class CompetitionAdmin(ModelView, model=Competition):
-    column_list = [Competition.id, Competition.title, Competition.entry_fee, Competition.is_active]
+    column_list = [
+        Competition.id,
+        Competition.title,
+        Competition.entry_fee,
+        Competition.start_date,
+        Competition.end_date,
+        Competition.is_active,
+    ]
     name_plural = "Competitions"
     icon = "fa-solid fa-trophy"
 
@@ -56,6 +63,7 @@ class EntryAdmin(ModelView, model=Entry):
     can_delete = False
     can_view_details = False
     column_display_actions = False
+    edit_template = "entry_edit.html"
 
     def list_query(self, request):
         from sqlalchemy import select, desc
@@ -141,7 +149,13 @@ class QuizAttemptAdmin(ModelView, model=QuizAttempt):
 
 
 def setup_admin(app):
-    admin = Admin(app, engine, authentication_backend=authentication_backend)
+    # Local templates directory contains admin customizations for sqladmin.
+    admin = Admin(
+        app,
+        engine,
+        authentication_backend=authentication_backend,
+        templates_dir="templates",
+    )
     admin.add_view(UserAdmin)
     admin.add_view(CompetitionAdmin)
     admin.add_view(QuestionAdmin)

@@ -22,13 +22,14 @@ async def process_mock_payment(
     import asyncio
     await asyncio.sleep(1.5) # Simulate processing delay
     
-    comp = db.query(models.Competition).filter(models.Competition.id == payment_in.competition_id).first()
+    competition_id = str(payment_in.competition_id)
+    comp = db.query(models.Competition).filter(models.Competition.id == competition_id).first()
     if not comp:
         raise HTTPException(status_code=404, detail="Competition not found")
         
     payment = models.Payment(
         user_id=current_user.id,
-        competition_id=payment_in.competition_id,
+        competition_id=competition_id,
         amount=payment_in.amount,
         status="completed", # Mocking successful payment
         transaction_id=str(uuid.uuid4())

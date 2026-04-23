@@ -93,7 +93,7 @@ const QuizScreen = ({ navigation }) => {
 
   return (
     <ScreenShell>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
         <Text style={[styles.timer, styles.textShadowed]}>{timeLeft}s</Text>
         <View style={styles.progressBarBg}>
           <View style={[styles.progressBarFill, { width: `${(timeLeft / 30) * 100}%` }]} />

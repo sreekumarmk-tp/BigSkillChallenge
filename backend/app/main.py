@@ -7,6 +7,8 @@ from app.database import engine
 from app import models
 from app.admin_config import setup_admin
 from starlette.middleware.sessions import SessionMiddleware
+from datetime import datetime
+from sqlalchemy import inspect, text
 
 # Create tables
 # try:
@@ -19,13 +21,46 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+
 @app.on_event("startup")
 def startup_event():
+    # One-time schema reset for legacy integer-id databases.
+    # This project now uses UUID string ids across all core tables.
+    try:
+        inspector = inspect(engine)
+        users_columns = {col["name"]: str(col["type"]).lower() for col in inspector.get_columns("users")}
+        if users_columns.get("id", "").startswith("integer"):
+            print("Legacy integer ID schema detected. Recreating core tables with UUID ids...")
+            with engine.begin() as conn:
+                conn.execute(text("DROP TABLE IF EXISTS scores CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS quiz_attempts CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS payments CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS entries CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS questions CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS competitions CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
+    except Exception as e:
+        print(f"Legacy UUID schema check skipped/failed: {e}")
+
     # Create tables safely on startup
     try:
         models.Base.metadata.create_all(bind=engine)
     except Exception as e:
         print(f"Database table creation failed: {e}")
+
+    # Lightweight startup migration for existing databases:
+    # ensure competitions table has start/end date columns.
+    try:
+        inspector = inspect(engine)
+        competition_columns = {col["name"] for col in inspector.get_columns("competitions")}
+        with engine.begin() as conn:
+            if "start_date" not in competition_columns:
+                conn.execute(text("ALTER TABLE competitions ADD COLUMN start_date TIMESTAMP"))
+            if "end_date" not in competition_columns:
+                conn.execute(text("ALTER TABLE competitions ADD COLUMN end_date TIMESTAMP"))
+    except Exception as e:
+        print(f"Competition date column migration skipped/failed: {e}")
 
     from app.database import SessionLocal
     db = SessionLocal()
@@ -35,10 +70,17 @@ def startup_event():
             default_comp = models.Competition(
                 title="Big AI Challenge",
                 description="Win a 1-year OpenAI subscription by proving your skills in GenAI, RAG, and Agentic workflows.",
-                entry_fee=5.00,
+                entry_fee=2.99,
+                start_date=datetime(2026, 1, 30, 0, 0, 0),
+                end_date=datetime(2026, 4, 29, 23, 59, 59),
                 is_active=True
             )
             db.add(default_comp)
+            db.commit()
+        elif not comp.start_date or not comp.end_date:
+            # Backfill dates for existing active competition records.
+            comp.start_date = comp.start_date or datetime(2026, 1, 30, 0, 0, 0)
+            comp.end_date = comp.end_date or datetime(2026, 4, 29, 23, 59, 59)
             db.commit()
         # Seed questions
         # Clear existing questions to ensure we use the new AI-specific ones
@@ -144,7 +186,7 @@ setup_admin(app)
 # Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins or ["http://localhost:8081"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

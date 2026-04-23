@@ -29,7 +29,7 @@ const EmailVerifyScreen = ({ navigation }) => {
   return (
     <ScreenShell>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
           <Text style={styles.title}>Verify Email</Text>
           <Text style={styles.subtitle}>Enter the 6-digit code sent to your email.</Text>
 

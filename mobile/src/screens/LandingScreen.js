@@ -10,8 +10,8 @@ import { NEON_CYAN, NEON_BLUE, DARK_BG, CARD_BG, TEXT_MUTED, PREMIUM_GOLD, GOLD_
 const COUNTDOWN_AMBER = '#F5C542';
 const COUNTDOWN_NUMBER = '#0B0D17';
 
-// Competition close (local). Update when marketing date is set.
-const COMPETITION_END = new Date('2026-04-25T23:59:59');
+const DEFAULT_COMPETITION_START = new Date('2026-01-30T00:00:00');
+const DEFAULT_COMPETITION_END = new Date('2026-04-29T23:59:59');
 
 function getTimeLeft(endDate) {
   const end = endDate.getTime();
@@ -25,8 +25,8 @@ function getTimeLeft(endDate) {
 }
 
 const LandingScreen = ({ navigation }) => {
-  const { userToken, isEmailVerified } = useContext(AppContext);
-  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(COMPETITION_END));
+  const { userToken, isEmailVerified, competition } = useContext(AppContext);
+  const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(DEFAULT_COMPETITION_END));
   
   // Animation values
   const [fadeAnim] = useState(new Animated.Value(0)); // Hero section fade
@@ -54,17 +54,35 @@ const LandingScreen = ({ navigation }) => {
   }, [userToken, isEmailVerified, navigation]);
 
   useEffect(() => {
-    const tick = () => setTimeLeft(getTimeLeft(COMPETITION_END));
+    const endDate = competition?.end_date ? new Date(competition.end_date) : DEFAULT_COMPETITION_END;
+    const tick = () => setTimeLeft(getTimeLeft(endDate));
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [competition?.end_date]);
 
   const formatNumber = (num) => String(num).padStart(2, '0');
+  const formatDisplayDate = (value, fallbackDate) => {
+    const date = value ? new Date(value) : fallbackDate;
+    const day = date.getDate();
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+    const mod10 = day % 10;
+    const mod100 = day % 100;
+    const suffix =
+      mod10 === 1 && mod100 !== 11 ? 'st' :
+      mod10 === 2 && mod100 !== 12 ? 'nd' :
+      mod10 === 3 && mod100 !== 13 ? 'rd' : 'th';
+    return `${day}${suffix} ${month} ${year}`;
+  };
+
+  const startDateText = formatDisplayDate(competition?.start_date, DEFAULT_COMPETITION_START);
+  const endDateText = formatDisplayDate(competition?.end_date, DEFAULT_COMPETITION_END);
+  const entryFee = Number(competition?.entry_fee ?? 2.99).toFixed(2);
 
   return (
     <ScreenShell>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
         
         {/* Header */}
         <View style={styles.header}>
@@ -76,7 +94,7 @@ const LandingScreen = ({ navigation }) => {
           </View>
           <TouchableOpacity
             style={styles.loginBtn}
-            onPress={() => navigation.navigate('Auth')}
+            onPress={() => navigation.navigate('Auth', { mode: 'login' })}
           >
             <Text style={styles.loginText}>LOGIN</Text>
           </TouchableOpacity>
@@ -111,7 +129,7 @@ const LandingScreen = ({ navigation }) => {
             </Text>
             <View style={styles.dateLabel}>
               <MaterialCommunityIcons name="calendar-clock" size={14} color={NEON_CYAN} />
-              <Text style={styles.dateText}>Starts 14th April 2026 · Ends 25th April 2026</Text>
+              <Text style={styles.dateText}>Starts {startDateText} · Ends {endDateText}</Text>
             </View>
           </Animated.View>
 
@@ -154,14 +172,14 @@ const LandingScreen = ({ navigation }) => {
               start={{x: 0, y: 0}}
               end={{x: 1, y: 0}}
             >
-              <Text style={styles.ctaText}>ENTER FOR $ 5.00</Text>
+              <Text style={styles.ctaText}>ENTER FOR $ {entryFee}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           <View style={styles.trustIndicatorsRow}>
             <View style={styles.trustIndicatorItem}>
               <MaterialCommunityIcons name="login-variant" size={14} color={NEON_CYAN} />
-              <Text style={styles.trustIndicatorText}>$ 5.00 per entry · Max 10 entries per participant · AI Skill-based</Text>
+              <Text style={styles.trustIndicatorText}>$ {entryFee} per attempt · Max 10 attempts per participant · AI Skill-based</Text>
             </View>
           </View>
 

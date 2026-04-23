@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
+from uuid import UUID
 
 # --- Token Schemas ---
 class Token(BaseModel):
@@ -8,7 +9,7 @@ class Token(BaseModel):
     token_type: str
 
 class TokenPayload(BaseModel):
-    sub: Optional[int] = None
+    sub: Optional[UUID] = None
 
 # --- User Schemas ---
 class UserBase(BaseModel):
@@ -20,7 +21,7 @@ class UserCreate(UserBase):
     password: str
 
 class UserResponse(UserBase):
-    id: int
+    id: UUID
     is_active: bool
     created_at: datetime
     access_token: Optional[str] = None
@@ -34,12 +35,14 @@ class CompetitionBase(BaseModel):
     title: str
     description: str
     entry_fee: float
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
 
 class CompetitionCreate(CompetitionBase):
     pass
 
 class CompetitionResponse(CompetitionBase):
-    id: int
+    id: UUID
     is_active: bool
     
     class Config:
@@ -47,14 +50,14 @@ class CompetitionResponse(CompetitionBase):
 
 # --- Payment Schemas ---
 class PaymentCreate(BaseModel):
-    competition_id: int
+    competition_id: UUID
     amount: float
     # In a real system, would include a payment method token
 
 class PaymentResponse(BaseModel):
-    id: int
-    user_id: int
-    competition_id: int
+    id: UUID
+    user_id: UUID
+    competition_id: UUID
     amount: float
     status: str
     transaction_id: Optional[str] = None
@@ -65,7 +68,7 @@ class PaymentResponse(BaseModel):
 
 # --- Entry Schemas ---
 class EntryCreate(BaseModel):
-    competition_id: int
+    competition_id: UUID
     content: str
     
 class ScoreResponse(BaseModel):
@@ -80,9 +83,9 @@ class ScoreResponse(BaseModel):
         from_attributes = True
 
 class EntryResponse(BaseModel):
-    id: int
-    user_id: int
-    competition_id: int
+    id: UUID
+    user_id: UUID
+    competition_id: UUID
     content: str
     status: str
     is_shortlisted: bool
@@ -94,16 +97,25 @@ class EntryResponse(BaseModel):
         from_attributes = True
 
 class EntryPercentileResponse(BaseModel):
-    entry_id: int
-    competition_id: int
+    entry_id: UUID
+    competition_id: UUID
     total_entries: int
     rank: int
     top_percentage: float
     percentile: float
 
+class AuditTrailEventResponse(BaseModel):
+    event: str
+    hash: str
+    occurred_at: Optional[datetime] = None
+
+class EntryAuditTrailResponse(BaseModel):
+    entry_id: UUID
+    events: List[AuditTrailEventResponse]
+
 # --- Quiz Schemas ---
 class QuestionResponse(BaseModel):
-    id: int
+    id: UUID
     text: str
     option_a: str
     option_b: str
@@ -114,14 +126,14 @@ class QuestionResponse(BaseModel):
         from_attributes = True
 
 class QuizAttemptBase(BaseModel):
-    competition_id: int
+    competition_id: UUID
 
 class QuizAttemptCreate(QuizAttemptBase):
     pass
 
 class QuizAttemptResponse(QuizAttemptBase):
-    id: int
-    user_id: int
+    id: UUID
+    user_id: UUID
     attempt_number: int
     status: str
     score: int
@@ -131,20 +143,20 @@ class QuizAttemptResponse(QuizAttemptBase):
         from_attributes = True
 
 class AnswerSubmission(BaseModel):
-    question_id: int
+    question_id: UUID
     answer: str # A, B, C, or D
 
 class AnswerEvaluationRequest(BaseModel):
-    attempt_id: int
-    question_id: int
+    attempt_id: UUID
+    question_id: UUID
     answer: str
 
 class QuizSubmission(BaseModel):
-    attempt_id: int
+    attempt_id: UUID
     answers: List[AnswerSubmission]
 
 class QuizStartResponse(BaseModel):
-    attempt_id: int
+    attempt_id: UUID
     questions: List[QuestionResponse]
     attempt_number: int
     

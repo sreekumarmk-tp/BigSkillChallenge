@@ -25,8 +25,13 @@ const CreativeSubmissionScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
+      if (!competition?.id) {
+        setError('Competition data is unavailable. Please try again.');
+        setLoading(false);
+        return;
+      }
       const res = await api.post('/submissions/', {
-        competition_id: competition?.id || 1,
+        competition_id: competition.id,
         content: text,
       });
       navigation.replace('EntryAccepted', { entryId: res.data.id });
@@ -39,7 +44,7 @@ const CreativeSubmissionScreen = ({ navigation }) => {
   return (
     <ScreenShell>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
           <Text style={[styles.title, styles.textShadowed]}>Creative Hurdle</Text>
           <Text style={[styles.subtitle, styles.textShadowed]}>In exactly 25 words, tell us why you should win this OpenAI subscription.</Text>
 

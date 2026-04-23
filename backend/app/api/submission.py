@@ -1,4 +1,6 @@
 from typing import Any, List
+from datetime import datetime
+from hashlib import sha256
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -8,6 +10,11 @@ from app.api import deps
 from app.services.ai_adapter import evaluate_entry
 
 router = APIRouter()
+
+
+def _build_audit_hash(entry_id: str, event: str, marker: str) -> str:
+    digest = sha256(f"{entry_id}:{event}:{marker}".encode("utf-8")).hexdigest()
+    return digest[:12]
 
 @router.get("/me", response_model=List[schemas.EntryResponse])
 def get_my_submissions(
@@ -22,7 +29,7 @@ def get_my_submissions(
 def get_entry_percentile(
     *,
     db: Session = Depends(deps.get_db),
-    entry_id: int,
+    entry_id: str,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     entry = db.query(models.Entry).filter(
@@ -62,6 +69,60 @@ def get_entry_percentile(
         "rank": rank,
         "top_percentage": top_percentage,
         "percentile": percentile,
+    }
+
+
+@router.get("/{entry_id}/audit-trail", response_model=schemas.EntryAuditTrailResponse)
+def get_entry_audit_trail(
+    *,
+    db: Session = Depends(deps.get_db),
+    entry_id: str,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    entry = db.query(models.Entry).filter(
+        models.Entry.id == entry_id,
+        models.Entry.user_id == current_user.id
+    ).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+
+    submitted_at = entry.created_at
+    scored_at = entry.score is not None
+    shortlist_generated = entry.is_shortlisted or entry.status == "shortlisted"
+
+    timeline: List[dict[str, Any]] = [
+        {
+            "event": "Entry submitted and sealed",
+            "occurred_at": submitted_at,
+            "hash": _build_audit_hash(
+                entry.id,
+                "Entry submitted and sealed",
+                submitted_at.isoformat() if isinstance(submitted_at, datetime) else "submitted",
+            ),
+        }
+    ]
+
+    if scored_at:
+        timeline.append(
+            {
+                "event": "AI evaluation completed",
+                "occurred_at": submitted_at,
+                "hash": _build_audit_hash(entry.id, "AI evaluation completed", "scored"),
+            }
+        )
+
+    if shortlist_generated:
+        timeline.append(
+            {
+                "event": "Shortlist generated",
+                "occurred_at": submitted_at,
+                "hash": _build_audit_hash(entry.id, "Shortlist generated", "shortlisted"),
+            }
+        )
+
+    return {
+        "entry_id": entry.id,
+        "events": timeline,
     }
 
 @router.post("/", response_model=schemas.EntryResponse)

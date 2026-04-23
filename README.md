@@ -1,15 +1,15 @@
-# Big Skill Challenge - MVP Platform
+# Big AI Challenge - MVP Platform
 
-The **Big Skill Challenge** is a mobile-first platform where users can register, participate in creative competitions, submit exactly 25-word responses, and receive deterministic AI-based scoring. This repository contains both the mobile application built with React Native (Expo) and the backend service built with FastAPI and PostgreSQL.
+The **Big AI Challenge** is a mobile-first platform where users can register, participate in creative competitions, submit exactly 25-word responses, and receive deterministic AI-based scoring. This repository contains both the mobile application built with React Native (Expo) and the backend service built with FastAPI and PostgreSQL.
 
 ## 🏗 System Architecture
 
 The project is split into two distinct directories to separate concerns:
 
-1. **`mobile/`**: The frontend React Native application designed mimicking the client prototype (dark glassmorphism theme). It communicates with the backend via RESTful APIs using Axios.
-2. **`backend/`**: The FastAPI-powered API, exposing endpoints for User Authentication (JWT), Competitions, Payment mocks, Submissions, and the AI Scoring Engine.
-3. **`admin/`**: Integrated SQLAlchemy Admin panel to manage the competition ecosystem, evaluate winners, and monitor scores.
-4. **Database**: A PostgreSQL instance containerized via Docker for data persistence.
+1. **`mobile/`**: The frontend React Native application designed with a premium neon-glassmorphism theme. Features custom hero animations, interactive countdowns, and a secure submission pipeline.
+2. **`backend/`**: The FastAPI-powered API, exposing endpoints for User Authentication (JWT), Competitions, Payment mocks, Submissions, and the Orchestrated AI Scoring Engine.
+3. **`admin/`**: Integrated SQLAlchemy Admin panel to manage the competition ecosystem, evaluate winners, and monitor real-time statistics.
+4. **Database**: A PostgreSQL instance (UUID-based schema) for robust data persistence and relational integrity.
 
 ### 🏗 Architecture Diagram
 
@@ -22,7 +22,8 @@ graph TD
         API
         AdminPanel
         Auth["Auth Service (JWT/OTP)"]
-        Scoring["AI Scoring Engine"]
+        Scoring["AI Scoring Engine (LangGraph)"]
+        Tracing["LangSmith Tracing"]
     end
     
     subgraph persistence ["Data Layer"]
@@ -31,6 +32,7 @@ graph TD
     
     API <--> Auth
     API <--> Scoring
+    Scoring <--> Tracing
     API <--> DB
     AdminPanel <--> DB
 ```
@@ -49,44 +51,42 @@ cd backend
 
 # Create your .env file
 cp .env.example .env
-# Edit .env and add your details (especially SMTP for OTP emails)
+# Edit .env and add your details (especially SMTP for OTP and LangSmith keys)
 
-# Start the PostgreSQL database using Docker
-docker-compose up -d
+# Ensure PostgreSQL is ready:
+./scripts/ensure_postgres.sh
 
 # Create and activate a Python virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+source venv/bin/activate
 
-# Install dependencies (including aiosmtplib for emails)
-# Recommended: Use `uv` for much faster dependency resolution
+# Install dependencies
 pip install uv
 uv pip install -r requirements.txt
 
-# Start the FastAPI server (auto-creates DB tables on launch)
-uvicorn app.main:app --reload --port 8000
+# Start the FastAPI server
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-> The API will be available at `http://localhost:8000`
-> The interactive Swagger documentation is hosted natively at `http://localhost:8000/docs`.
+> The API will be available at `http://localhost:8000`.
 > The **Admin Panel** is available at `http://localhost:8000/admin`.
-> - **Default Admin Email**: `admin@bigskillchallenge.com`
-> - **Default Admin Password**: `admin123_change_me`
+> - **Default Admin**: `admin@bigskillchallenge.com` / `admin123_change_me`
 
 ### 2. Starting the Mobile Application (React Native / Expo)
-
-The frontend uses Expo to ensure a fast, robust mobile development timeline. You will need **Node.js** and **npm** installed.
 
 ```bash
 # Navigate to the mobile directory
 cd mobile
 
-# Install NPM dependencies
+# Install dependencies
 npm install
 
-# Start the Expo development server
+# Create mobile env
+cp .env.example .env
+# Set EXPO_PUBLIC_API_URL=http://<your-lan-ip>:8000/api/v1
+
+# Start Expo
 npx expo start
 ```
-> You can run the app directly on your physical device by downloading the **Expo Go** app and scanning the provided QR code, or by pressing `a` to open it in an Android Emulator / `i` to open it in an iOS Simulator.
 
 ---
 
@@ -97,43 +97,43 @@ graph LR
     Start([Registration]) --> OTP[Email OTP Verification]
     OTP --> Dashboard[User Dashboard]
     Dashboard --> Pay[Mock Payment Integration]
-    Pay --> Quiz{Qualifying Quiz}
-    Quiz -- Fail --> Dashboard
+    Pay --> Quiz{AI Skill Quiz}
     Quiz -- Pass --> Submit[25-Word Submission]
-    Submit --> Scoring[AI Automated Scoring]
-    Scoring --> Leaderboard[Leaderboard Placement]
-    Leaderboard --> AdminEval{Manual Admin Evaluation}
-    AdminEval --> Winner([Winner Selection])
+    Submit --> Scoring[Orchestrated AI Scoring]
+    Scoring --> Rank[Percentile & Rank Engine]
+    Rank --> Audit[Hash-sealed Audit Trail]
+    Audit --> Winner([Winner Selection])
 ```
 
 ## 🛠 Feature Scope
 
-Based on the core prototypes, the MVP contains the following foundational scaffolding:
-
-- **Authentication System**: Secure JWT-based user registration and login implementation mimicking the HTML tabs.
-- **OTP Verification**: Email-based verification flow (SMTP) to ensure user authenticity during registration.
-- **Competition Flow**: Secure API structure outlining eligibility checks and active entry points.
-- **Mock Payments**: Payment integration layer ready to be substituted with Stripe / Razorpay logic upon production launch.
-- **25-Word LangGraph AI Scoring System**:
-  - Validates entries perfectly matching the 25-word limit before AI inference to ensure constraints are respected.
-  - Powered by a **LangGraph Orchestrator** leveraging a Parallel + Aggregation + Reflection (PAR) workflow pattern.
-  - Four sub-agents evaluate `Relevance`, `Creativity`, `Clarity`, and `Impact` concurrently, with an automated consistency and reflection check for maximum deterministic quality.
-  - Utilizes dynamic provider injection via `ai_adapter.py` seamlessly integrating local **Ollama** models, remote free-tier **Groq** endpoints, and production-ready **Gemini** providers. All providers can have their specific model names configured globally via the `LLM_MODEL` environment variable.
-  - See the [detailed documentation](file:///mnt/data/sreekumar/projects/AgenticAI/BigSkillChallenge/AI_SCORING_SYSTEM.md) for deeper workflow details.
-- **Aesthetic System Layout**: React Native constants configuring `linear-gradients`, `#F59E0B` CTA buttons and translucent glass borders.
-- **Admin Dashboard**:
-  - Secure **sqladmin** dashboard for manual evaluation of winners.
-  - Features real-time **Leaderboard** viewing sorted by top AI scores.
-  - Capabilities to manage `Users`, `Competitions`, `Questions`, and `Entries`.
+- **Advanced AI Scoring (LangGraph)**:
+  - Parallel evaluation of `Relevance`, `Creativity`, `Clarity`, and `Impact`.
+  - **Reflection Node**: Detects scoring divergence and triggers an "Adjustment" node for harmonization.
+  - **LangSmith Integration**: Full tracing of every scoring event for debugging and quality monitoring.
+  - **Multi-Provider Support**: Seamlessly switch between local Ollama, Groq, and Gemini.
+- **Percentile & Ranking Engine**: Real-time calculation of user performance against the entire competition pool.
+- **Immutable Audit Trails**: Every submission generates a hash-sealed timeline of events (Submission -> AI Scoring -> Shortlisting) for transparency.
+- **AI-Focused Quiz Module**: 50+ curated questions on Agentic AI, RAG, MCP, and GenAI architectures to ensure a high-skill participant pool.
+- **Premium UI/UX**:
+  - Dark-mode glassmorphism with neon accents (`#00F0FF`).
+  - Hero sections with animated imagery and real-time countdowns.
+  - Native hooks to prevent copy-pasting on submission screens.
+- **Secure Admin Dashboard**: 
+  - Real-time statistics on participation and scores.
+  - Manual shortlisting and winner selection tools.
 
 ## 📋 Completed Development
 
-- [x] Implement SMTP-based OTP email verification.
-- [x] Complete robust Redux / Context API State management in React Native for active cross-screen memory.
-- [x] Connect absolute production API keys inside the backend `.env`.
-- [x] Map the exact countdown interval logic mapping to the explicit 30-second localized quiz states (`07-quiz.html`).
-- [x] Implement Paste-Blocking behavior hooks purely natively on the React `SubmissionScreen`.
-- [x] Fix user registration to correctly save `first_name` and `last_name`.
-- [x] Implement **SQLAlchemy Admin Panel** with secure authentication.
-- [x] Create **Leaderboard** view for top scores and manual winner selection.
-- [x] Integrate **LangGraph AI Orchestrator** for rigorous, parallel submission scoring across local Ollama, Groq, and Gemini LLMs.
+- [x] **Rebranded to Big AI Challenge** with updated prize details (1-Year OpenAI Subscription).
+- [x] **LangGraph Orchestrator** with parallel nodes and reflection logic.
+- [x] **LangSmith Tracing** integration for AI pipeline observability.
+- [x] **Percentile Response Schema** and ranking logic in backend.
+- [x] **Immutable Audit Trails** using SHA-256 hash sealing for submission events.
+- [x] **Enhanced Email Flow** with state-managed verification status.
+- [x] **AI-Themed Quiz** seeded with 50+ expert-level questions.
+- [x] **Premium Landing Screen** with hero imagery, staggered animations, and trust indicators.
+- [x] **SQLAlchemy Admin** with restricted permissions and statistical dashboard.
+- [x] **Mobile State Management** using Context API for cross-screen persistence.
+- [x] **Paste-Blocking Hooks** implemented on creative submission screens.
+

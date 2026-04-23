@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -6,7 +7,7 @@ from app.database import Base
 class User(Base):
     __tablename__ = "users"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     first_name = Column(String(50))
     last_name = Column(String(50))
     email = Column(String(100), unique=True, index=True)
@@ -25,10 +26,12 @@ class User(Base):
 class Competition(Base):
     __tablename__ = "competitions"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(100))
     description = Column(Text)
     entry_fee = Column(Float)
+    start_date = Column(DateTime, nullable=True)
+    end_date = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
     
     payments = relationship("Payment", back_populates="competition")
@@ -40,9 +43,9 @@ class Competition(Base):
 class Payment(Base):
     __tablename__ = "payments"
     
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    competition_id = Column(Integer, ForeignKey("competitions.id"))
+    id = Column(String(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"))
+    competition_id = Column(String(36), ForeignKey("competitions.id"))
     amount = Column(Float)
     transaction_id = Column(String(100), unique=True, nullable=True)
     status = Column(String(20), default="pending") # pending, completed, failed
@@ -57,9 +60,9 @@ class Payment(Base):
 class Entry(Base):
     __tablename__ = "entries"
     
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    competition_id = Column(Integer, ForeignKey("competitions.id"))
+    id = Column(String(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"))
+    competition_id = Column(String(36), ForeignKey("competitions.id"))
     content = Column(Text) # The 25 word response
     status = Column(String(20), default="submitted") # submitted, scored
     is_winner = Column(Boolean, default=False)
@@ -76,8 +79,8 @@ class Entry(Base):
 class Score(Base):
     __tablename__ = "scores"
     
-    id = Column(Integer, primary_key=True, index=True)
-    entry_id = Column(Integer, ForeignKey("entries.id"))
+    id = Column(String(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    entry_id = Column(String(36), ForeignKey("entries.id"))
     relevance_score = Column(Float)
     creativity_score = Column(Float)
     clarity_score = Column(Float)
@@ -93,7 +96,7 @@ class Score(Base):
 class Question(Base):
     __tablename__ = "questions"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     text = Column(String(500))
     option_a = Column(String(200))
     option_b = Column(String(200))
@@ -107,9 +110,9 @@ class Question(Base):
 class QuizAttempt(Base):
     __tablename__ = "quiz_attempts"
     
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    competition_id = Column(Integer, ForeignKey("competitions.id"))
+    id = Column(String(36), primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"))
+    competition_id = Column(String(36), ForeignKey("competitions.id"))
     attempt_number = Column(Integer)
     status = Column(String(20), default="pending") # pending, passed, failed
     score = Column(Integer, default=0)

@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     LLM_MODEL: Optional[str] = None
     GROQ_API_KEY: Optional[str] = None
     OLLAMA_BASE_URL: str = "http://localhost:11434"
+    CORS_ORIGINS: str = "http://localhost:8081,http://localhost:3000"
 
     # LangSmith Tracing
     LANGCHAIN_TRACING_V2: str = "false"

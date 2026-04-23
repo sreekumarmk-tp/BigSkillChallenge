@@ -1,6 +1,6 @@
 # AI Scoring System Documentation
 
-This document outlines the architecture, design patterns, and operational strategy of the **AI Scoring System** used in the Big Skill Challenge platform. 
+This document outlines the architecture, design patterns, and operational strategy of the **AI Scoring System** used in the Big AI Challenge platform. 
 
 ---
 
@@ -10,6 +10,7 @@ The scoring system is built as a **Graph-based Orchestrator**, ensuring precise 
 
 - **Orchestration Engine**: [LangGraph](https://www.langchain.com/langgraph)
 - **Workflow Pattern**: Parallel Execution + Aggregation + Reflection (PAR)
+- **Monitoring & Observability**: [LangSmith](https://smith.langchain.com/) for full lifecycle tracing of AI events.
 - **Operational Strategy**: **Controlled Workflow**. Unlike fully autonomous agents that may loop indefinitely or deviate from the task, this system follows a strictly defined state machine where every transition is programmed and monitored.
 
 ---
@@ -97,7 +98,7 @@ Collects the JSON outputs from all four parallel agents. It resolves potential d
 ### 4. Reflection Node
 A critical quality control layer. Instead of blindly accepting the agents' outputs, this node performs a "Consistency Check."
 - **Logic**: If the Creativity Agent gives a 100/100 but the Clarity Agent reports the content is unintelligible, the Reflection Node flags a conflict.
-- **Path**: Routes to `Adjust Scores` if anomalies are detected.
+- **Path**: Routes to `Adjust Scores` if anomalies are detected (discrepancy > 50 points).
 
 ### 5. Normalization & Persistence
 Ensures all scores are mathematically aligned to the platform's leaderboard standards (e.g., scale of 0-100) and commits the final result to the PostgreSQL database.
@@ -107,8 +108,8 @@ Ensures all scores are mathematically aligned to the platform's leaderboard stan
 ## 💡 Key Design Decisions
 
 > [!IMPORTANT]
-> **Controlled Workflow vs. Autonomous Agents**
-> We use LangGraph to treat LLM calls as discrete nodes in a state machine. This prevents "agentic drift" where an AI might decide to change the scoring criteria mid-process.
+> **Observability with LangSmith**
+> Every node in the graph is wrapped in the `@traceable` decorator. This allows us to inspect the raw prompts and JSON responses of each sub-agent in real-time, facilitating rapid prompt engineering and regression testing.
 
 > [!TIP]
 > **Resource Efficiency**
@@ -116,8 +117,12 @@ Ensures all scores are mathematically aligned to the platform's leaderboard stan
 
 ---
 
-## 🛠️ Implementation Specs (Planned)
+## 🛠️ Implementation Specs
 - **Engine**: Python / FastAPI
 - **Graph Core**: `langgraph.graph.StateGraph`
-- **Memory**: `langgraph.checkpoint.MemorySaver` for thread-safe state persistence during reflection loops.
-- **Models**: Configurable via `.env` (variable `LLM_MODEL`). Supports Groq (e.g., `llama-3.3-70b-versatile`), Ollama (e.g., `gemma4`), and Gemini (e.g., `gemini-1.5-flash`).
+- **Memory**: `langgraph.checkpoint.MemorySaver` for thread-safe state persistence.
+- **Models**: Configurable via `.env` (variable `LLM_MODEL`). Supports:
+  - **Groq**: `llama-3.3-70b-versatile`
+  - **Ollama**: `gemma2`, `llama3.2`
+  - **Gemini**: `gemini-1.5-flash`
+

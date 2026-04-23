@@ -7,7 +7,7 @@ import { TEXT_MUTED, SUCCESS, CTA_GRADIENT_COLORS, CARD_BG, SCREEN_PADDING_H } f
 
 const EntryAcceptedScreen = ({ route, navigation }) => {
   const { entryId } = route.params || { entryId: 'UNKNOWN' };
-  const entryReference = `TBSC-2026-${String(entryId).padStart(6, '0')}`;
+  const entryReference = `TBSC-2026-${String(entryId).replace(/-/g, '').slice(0, 8).toUpperCase()}`;
   const submittedAt = new Date().toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
@@ -18,7 +18,7 @@ const EntryAcceptedScreen = ({ route, navigation }) => {
 
   return (
     <ScreenShell>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
         <View style={styles.iconWrap}>
           <Text style={styles.icon}>✓</Text>
         </View>

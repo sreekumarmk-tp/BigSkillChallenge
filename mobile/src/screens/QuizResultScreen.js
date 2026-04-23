@@ -68,7 +68,7 @@ const QuizResultScreen = ({ route, navigation }) => {
 
   return (
     <ScreenShell>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
         <Animated.View style={{ opacity: fadeAnim, alignItems: 'center', width: '100%' }}>
           {status === 'success' ? (
             <Image 

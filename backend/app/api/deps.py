@@ -34,7 +34,12 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    user = db.query(models.User).filter(models.User.id == token_data.sub).first()
+    if token_data.sub is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+    user = db.query(models.User).filter(models.User.id == str(token_data.sub)).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

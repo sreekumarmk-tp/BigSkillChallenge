@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Any, List
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
@@ -9,11 +10,13 @@ from app.api import deps
 
 router = APIRouter()
 
-def check_attempt_eligibility(db: Session, user_id: int, competition_id: int):
+def check_attempt_eligibility(db: Session, user_id: UUID, competition_id: UUID):
+    user_id_str = str(user_id)
+    competition_id_str = str(competition_id)
     # 1. Check 10-attempt limit
     attempts_count = db.query(models.QuizAttempt).filter(
-        models.QuizAttempt.user_id == user_id,
-        models.QuizAttempt.competition_id == competition_id
+        models.QuizAttempt.user_id == user_id_str,
+        models.QuizAttempt.competition_id == competition_id_str
     ).count()
     
     if attempts_count >= 10:
@@ -24,14 +27,14 @@ def check_attempt_eligibility(db: Session, user_id: int, competition_id: int):
         
     # 2. Check for unused payment
     payments_count = db.query(models.Payment).filter(
-        models.Payment.user_id == user_id,
-        models.Payment.competition_id == competition_id,
+        models.Payment.user_id == user_id_str,
+        models.Payment.competition_id == competition_id_str,
         models.Payment.status == "completed"
     ).count()
     
     finished_attempts_count = db.query(models.QuizAttempt).filter(
-        models.QuizAttempt.user_id == user_id,
-        models.QuizAttempt.competition_id == competition_id,
+        models.QuizAttempt.user_id == user_id_str,
+        models.QuizAttempt.competition_id == competition_id_str,
         models.QuizAttempt.status.in_(["passed", "failed"])
     ).count()
     
@@ -48,8 +51,9 @@ def get_quiz_questions(
     *,
     db: Session = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    competition_id: int,
+    competition_id: UUID,
 ) -> Any:
+    competition_id_str = str(competition_id)
     # Check eligibility (10-attempt limit and payment)
     attempts_count = check_attempt_eligibility(db, current_user.id, competition_id)
     
@@ -59,7 +63,7 @@ def get_quiz_questions(
     # Create new attempt record
     attempt = models.QuizAttempt(
         user_id=current_user.id,
-        competition_id=competition_id,
+        competition_id=competition_id_str,
         attempt_number=attempts_count + 1,
         status="pending"
     )
@@ -79,11 +83,12 @@ def start_quiz(
     current_user: models.User = Depends(deps.get_current_active_user),
     attempt_in: schemas.QuizAttemptCreate,
 ) -> Any:
+    competition_id_str = str(attempt_in.competition_id)
     # If there is an unfinished pending attempt, treat it as timed out.
     # This ensures timed-out attempts are recorded as failed and consume an attempt.
     pending_attempt = db.query(models.QuizAttempt).filter(
         models.QuizAttempt.user_id == current_user.id,
-        models.QuizAttempt.competition_id == attempt_in.competition_id,
+        models.QuizAttempt.competition_id == competition_id_str,
         models.QuizAttempt.status == "pending"
     ).first()
     
@@ -97,7 +102,7 @@ def start_quiz(
     # Create new attempt record
     attempt = models.QuizAttempt(
         user_id=current_user.id,
-        competition_id=attempt_in.competition_id,
+        competition_id=competition_id_str,
         attempt_number=attempts_count + 1,
         status="pending"
     )
@@ -121,8 +126,10 @@ def evaluate_answer(
     current_user: models.User = Depends(deps.get_current_active_user),
     eval_in: schemas.AnswerEvaluationRequest, # Fixed schema
 ) -> Any:
+    attempt_id_str = str(eval_in.attempt_id)
+    question_id_str = str(eval_in.question_id)
     attempt = db.query(models.QuizAttempt).filter(
-        models.QuizAttempt.id == eval_in.attempt_id,
+        models.QuizAttempt.id == attempt_id_str,
         models.QuizAttempt.user_id == current_user.id
     ).first()
     
@@ -132,7 +139,7 @@ def evaluate_answer(
     if attempt.status != "pending":
          raise HTTPException(status_code=400, detail="Attempt already completed")
     
-    q = db.query(models.Question).filter(models.Question.id == eval_in.question_id).first()
+    q = db.query(models.Question).filter(models.Question.id == question_id_str).first()
     if not q:
         raise HTTPException(status_code=404, detail="Question not found")
     
@@ -153,8 +160,9 @@ def submit_quiz(
     current_user: models.User = Depends(deps.get_current_active_user),
     submission: schemas.QuizSubmission,
 ) -> Any:
+    attempt_id_str = str(submission.attempt_id)
     attempt = db.query(models.QuizAttempt).filter(
-        models.QuizAttempt.id == submission.attempt_id,
+        models.QuizAttempt.id == attempt_id_str,
         models.QuizAttempt.user_id == current_user.id
     ).first()
     
@@ -176,13 +184,14 @@ def submit_quiz(
 
 @router.get("/attempts/{competition_id}", response_model=List[schemas.QuizAttemptResponse])
 def get_user_attempts(
-    competition_id: int,
+    competition_id: UUID,
     db: Session = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
+    competition_id_str = str(competition_id)
     attempts = db.query(models.QuizAttempt).filter(
         models.QuizAttempt.user_id == current_user.id,
-        models.QuizAttempt.competition_id == competition_id
+        models.QuizAttempt.competition_id == competition_id_str
     ).all()
     return attempts
 

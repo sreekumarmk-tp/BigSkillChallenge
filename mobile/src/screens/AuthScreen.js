@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,9 +7,9 @@ import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
 import { NEON_CYAN, NEON_BLUE, DARK_BG, INPUT_BG, TEXT_MUTED, CTA_GRADIENT_COLORS, PREMIUM_GOLD, getShadow, getTextShadow } from '../theme/neonTheme';
 
-const AuthScreen = ({ navigation }) => {
+const AuthScreen = ({ navigation, route }) => {
   const { login, register } = useContext(AppContext);
-  const [isRegister, setIsRegister] = useState(true);
+  const [isRegister, setIsRegister] = useState(route?.params?.mode !== 'login');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +20,19 @@ const AuthScreen = ({ navigation }) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (route?.params?.mode === 'login') {
+      setIsRegister(false);
+      setError('');
+      return;
+    }
+
+    if (route?.params?.mode === 'register') {
+      setIsRegister(true);
+      setError('');
+    }
+  }, [route?.params?.mode]);
 
   const handleAuth = async () => {
     setError('');
@@ -87,7 +100,7 @@ const AuthScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+        <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
           
           <View style={styles.header}>
             <View style={styles.logoContainer}>
@@ -145,7 +158,7 @@ const AuthScreen = ({ navigation }) => {
                   <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
                   <View style={styles.inputWrapper}>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, styles.emailInput]}
                       placeholder="challenger@arena.com"
                       placeholderTextColor="#555"
                       value={email}
@@ -242,7 +255,7 @@ const AuthScreen = ({ navigation }) => {
                   <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
                   <View style={styles.inputWrapper}>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, styles.emailInput]}
                       placeholder="challenger@arena.com"
                       placeholderTextColor="#555"
                       value={email}
@@ -425,7 +438,16 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 15,
     height: '100%',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
     outlineStyle: 'none',
+    outlineWidth: 0,
+  },
+  emailInput: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   checkboxesSection: {
     marginTop: 8,

@@ -24,7 +24,7 @@ const EligibilityScreen = ({ navigation }) => {
 
   return (
     <ScreenShell>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} hitSlop={10}>
             <MaterialCommunityIcons name="arrow-left" size={24} color="#FFF" />

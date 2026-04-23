@@ -26,7 +26,7 @@ const PaymentSuccessScreen = ({ route, navigation }) => {
 
   return (
     <ScreenShell>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
         <Text style={styles.icon}>✅</Text>
         <Text style={styles.title}>Payment Successful</Text>
         <Text style={styles.subtitle}>Reference: {transactionId}</Text>

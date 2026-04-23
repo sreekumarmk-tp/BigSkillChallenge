@@ -7,10 +7,11 @@ import AppFooter from '../components/AppFooter';
 import { TEXT_MUTED, INPUT_BG, ERROR, CTA_GRADIENT_COLORS, SCREEN_PADDING_H } from '../theme/neonTheme';
 
 const PaymentScreen = ({ navigation }) => {
-  const { processPayment } = useContext(AppContext);
+  const { processPayment, competition } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fadeAnim] = useState(new Animated.Value(0));
+  const entryFee = Number(competition?.entry_fee ?? 2.99).toFixed(2);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -23,7 +24,7 @@ const PaymentScreen = ({ navigation }) => {
   const handlePay = async () => {
     setLoading(true);
     try {
-      const receipt = await processPayment(5.00);
+      const receipt = await processPayment(Number(entryFee));
       if (receipt) {
         navigation.navigate('PaymentSuccess', { transactionId: receipt.transaction_id });
       } else {
@@ -38,9 +39,9 @@ const PaymentScreen = ({ navigation }) => {
   return (
     <ScreenShell>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
           <Text style={styles.title}>Secure Checkout</Text>
-          <Text style={styles.subtitle}>Pay $ 5.00 entry fee · 1-Year OpenAI Subscription prize.</Text>
+          <Text style={styles.subtitle}>Pay $ {entryFee} entry fee · 1-Year OpenAI Subscription prize.</Text>
 
           <Animated.View style={[styles.prizePreview, { opacity: fadeAnim }]}>
             <Image 
@@ -83,7 +84,7 @@ const PaymentScreen = ({ navigation }) => {
                 {loading ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={styles.buttonText}>Pay $ 5.00</Text>
+                  <Text style={styles.buttonText}>Pay $ {entryFee}</Text>
                 )}
               </LinearGradient>
             </TouchableOpacity>

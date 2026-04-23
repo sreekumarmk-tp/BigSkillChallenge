@@ -10,6 +10,7 @@ const ResultScreen = ({ route, navigation }) => {
   const { entryId } = route.params;
   const [entry, setEntry] = useState(null);
   const [percentileInfo, setPercentileInfo] = useState(null);
+  const [auditTrail, setAuditTrail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showRubric, setShowRubric] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
@@ -25,6 +26,8 @@ const ResultScreen = ({ route, navigation }) => {
           const percentileRes = await api.get(`/submissions/${entryId}/percentile`);
           setPercentileInfo(percentileRes.data);
         }
+        const auditTrailRes = await api.get(`/submissions/${entryId}/audit-trail`);
+        setAuditTrail(auditTrailRes.data);
       } catch (e) {
         console.log(e);
       }
@@ -47,7 +50,7 @@ const ResultScreen = ({ route, navigation }) => {
   if (!entry || !entry.score) {
     return (
       <ScreenShell>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} nestedScrollEnabled keyboardShouldPersistTaps="handled">
           <Text style={styles.mutedCenter}>Result not properly formulated yet.</Text>
           <TouchableOpacity style={styles.linkBtn} onPress={() => navigation.goBack()}>
             <Text style={styles.linkText}>Go Back</Text>
@@ -60,11 +63,27 @@ const ResultScreen = ({ route, navigation }) => {
 
   const hasTopPercentage = percentileInfo?.top_percentage !== undefined && percentileInfo?.top_percentage !== null;
   const topPercentage = hasTopPercentage ? percentileInfo.top_percentage : null;
+  const rank = percentileInfo?.rank;
+  const hasRank = Number.isFinite(rank);
   const totalEntries = percentileInfo?.total_entries;
   const isShortlisted = entry?.is_shortlisted || entry?.status === 'shortlisted';
   const rawTotalScore = Number(entry?.score?.total_score);
   const hasValidTotalScore = Number.isFinite(rawTotalScore);
   const scoreOutOf100 = hasValidTotalScore ? Math.round(rawTotalScore) : null;
+  const auditEvents = Array.isArray(auditTrail?.events) ? auditTrail.events : [];
+  const displayEntryId = entryId ? (entryId.length > 12 ? `${entryId.substring(0, 8)}...` : entryId) : 'N/A';
+
+
+  const formatAuditTimestamp = (value) => {
+    if (!value) {
+      return 'Timestamp unavailable';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return 'Timestamp unavailable';
+    }
+    return parsed.toLocaleString();
+  };
 
   const rubricData = [
     { label: 'Relevance to Prompt', value: Number(entry?.score?.relevance_score), color: '#F59E0B' },
@@ -76,12 +95,12 @@ const ResultScreen = ({ route, navigation }) => {
   if (!isShortlisted) {
     return (
       <ScreenShell>
-        <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+        <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
           <View style={styles.topBar}>
             <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} style={styles.backBtn}>
               <MaterialCommunityIcons name="arrow-left" size={22} color="#FFF" />
             </TouchableOpacity>
-            <Text style={styles.entryRef}>ENTRY-{entryId}</Text>
+            <Text style={styles.entryRef}>ENTRY-{displayEntryId}</Text>
             <View style={styles.backBtn} />
           </View>
 
@@ -108,7 +127,7 @@ const ResultScreen = ({ route, navigation }) => {
             <Text style={styles.sectionTitle}>Entry Details</Text>
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Reference</Text>
-              <Text style={styles.breakdownValue}>ENTRY-{entryId}</Text>
+              <Text style={styles.breakdownValue} numberOfLines={1} ellipsizeMode="middle">ENTRY-{entryId}</Text>
             </View>
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Shortlist</Text>
@@ -125,19 +144,53 @@ const ResultScreen = ({ route, navigation }) => {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Evaluator Feedback</Text>
-            <View style={styles.feedbackBoxInline}>
-              <Text style={styles.feedbackText}>
-                "{entry?.score?.feedback || 'Feedback is being prepared.'}"
-              </Text>
+            <Text style={styles.sectionTitle}>Your Submission</Text>
+            <View style={styles.promptBox}>
+              <Text style={styles.promptLabel}>Prompt</Text>
+              <Text style={styles.promptText}>"In exactly 25 words, tell us why you should win this prize."</Text>
             </View>
+            <Text style={styles.promptLabel}>Your Response</Text>
+            <Text style={styles.responseText}>"{entry?.content || 'Response is being prepared.'}"</Text>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaText}>25 words</Text>
+              <Text style={styles.metaText}>Locked</Text>
+            </View>
+          </View>
+
+          {/* Evaluator Feedback and Rubric Breakdown hidden for End Users as per requirement */}
+
+          <View style={styles.card}>
+            <TouchableOpacity style={styles.accordionBtn} onPress={() => setShowAudit((prev) => !prev)} activeOpacity={0.85}>
+              <Text style={styles.sectionTitle}>Immutable Audit Trail</Text>
+              <MaterialCommunityIcons name={showAudit ? 'chevron-up' : 'chevron-down'} size={18} color={PREMIUM_GOLD} />
+            </TouchableOpacity>
+            {showAudit && (
+              <View style={styles.accordionBody}>
+                {auditEvents.length > 0 ? (
+                  auditEvents.map((item, index) => (
+                    <View
+                      key={`${item.event}-${index}`}
+                      style={[styles.auditRow, index === auditEvents.length - 1 ? { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 } : null]}
+                    >
+                      <Text style={styles.auditEvent}>{item.event}</Text>
+                      <Text style={styles.auditTs}>Hash: {item.hash}</Text>
+                      <Text style={styles.auditTs}>{formatAuditTimestamp(item.occurred_at)}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <View style={[styles.auditRow, { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 }]}>
+                    <Text style={styles.auditEvent}>Audit events are being generated.</Text>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
 
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>What You Can Do Next</Text>
             <View style={styles.stepRow}>
               <Text style={styles.stepNum}>1</Text>
-              <Text style={styles.stepText}>Review your feedback and understand scoring areas.</Text>
+              <Text style={styles.stepText}>Review your submission details and audit trail.</Text>
             </View>
             <View style={styles.stepRow}>
               <Text style={styles.stepNum}>2</Text>
@@ -162,12 +215,12 @@ const ResultScreen = ({ route, navigation }) => {
 
   return (
     <ScreenShell>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
         <View style={styles.topBar}>
           <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} style={styles.backBtn}>
             <MaterialCommunityIcons name="arrow-left" size={22} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.entryRef}>ENTRY-{entryId}</Text>
+          <Text style={styles.entryRef}>ENTRY-{displayEntryId}</Text>
           <View style={styles.backBtn} />
         </View>
 
@@ -177,20 +230,22 @@ const ResultScreen = ({ route, navigation }) => {
           </View>
           <View style={styles.shortlistBadge}>
             <Text style={styles.shortlistBadgeText}>
-              {hasTopPercentage ? `Shortlisted - Top ${topPercentage}%` : 'Shortlisted'}
+              {hasRank && totalEntries ? `Shortlisted - Rank #${rank} of ${totalEntries}` : hasTopPercentage ? `Shortlisted - Top ${topPercentage}%` : 'Shortlisted'}
             </Text>
           </View>
           <Text style={styles.heroTitle}>Congratulations!</Text>
           <Text style={styles.heroSub}>
-            {hasTopPercentage && totalEntries
-              ? `Your entry ranked in the top ${topPercentage}% of ${totalEntries} entries.`
-              : 'Your entry has completed AI evaluation and is shortlisted for the next stage.'}
+            {hasRank && totalEntries
+              ? `Your entry is currently ranked #${rank} out of ${totalEntries} entries.`
+              : hasTopPercentage && totalEntries
+                ? `Your entry ranked in the top ${topPercentage}% of ${totalEntries} entries.`
+                : 'Your entry has completed AI evaluation and is shortlisted for the next stage.'}
           </Text>
         </View>
 
         <View style={styles.infoBar}>
           <Text style={styles.infoBarText}>
-            <Text style={styles.infoBarStrong}>Lucid Engine AI TM</Text> is a deterministic evaluation tool using exact rubrics.
+            AI scoring follows the published rubric consistently.
             Final winners are confirmed by independent human judges.
           </Text>
         </View>
@@ -198,7 +253,7 @@ const ResultScreen = ({ route, navigation }) => {
         <View style={styles.card}>
           <View style={styles.cardTitleRow}>
             <Text style={styles.sectionTitle}>AI Evaluation Score</Text>
-            <Text style={styles.cardLabel}>Lucid Engine AI TM</Text>
+            <Text style={styles.cardLabel}>AI Evaluation</Text>
           </View>
 
           <View style={styles.scoreWrap}>
@@ -208,42 +263,15 @@ const ResultScreen = ({ route, navigation }) => {
             </View>
 
             <View style={styles.scoreInfoCol}>
-              <Text style={styles.rankText}>{hasTopPercentage ? `Top ${topPercentage}%` : 'Rank pending'}</Text>
-              <Text style={styles.rankSub}>{totalEntries ? `of ${totalEntries} entries` : 'Population updating'}</Text>
+              <Text style={styles.rankText}>{hasRank ? `#${rank}` : hasTopPercentage ? `Top ${topPercentage}%` : 'Rank pending'}</Text>
+              <Text style={styles.rankSub}>{hasRank && totalEntries ? `of ${totalEntries} shortlisted entries` : totalEntries ? `of ${totalEntries} entries` : 'Population updating'}</Text>
               <View style={styles.proceedingPill}>
                 <Text style={styles.proceedingText}>Proceeding to judging</Text>
               </View>
             </View>
           </View>
 
-          <TouchableOpacity style={styles.accordionBtn} onPress={() => setShowRubric((prev) => !prev)} activeOpacity={0.85}>
-            <Text style={styles.accordionBtnText}>View Rubric Breakdown</Text>
-            <MaterialCommunityIcons name={showRubric ? 'chevron-up' : 'chevron-down'} size={18} color={PREMIUM_GOLD} />
-          </TouchableOpacity>
-
-          {showRubric && (
-            <View style={styles.accordionBody}>
-              {rubricData.map((item) => (
-                <View key={item.label} style={styles.rubricRow}>
-                  <View style={styles.rubricHead}>
-                    <Text style={styles.rubricLabel}>{item.label}</Text>
-                    <Text style={[styles.rubricValue, { color: item.color }]}>{Number.isFinite(item.value) ? Math.round(item.value) : '--'}</Text>
-                  </View>
-                  <View style={styles.rubricTrack}>
-                    <View
-                      style={[
-                        styles.rubricFill,
-                        {
-                          width: `${Number.isFinite(item.value) ? Math.max(0, Math.min(100, item.value)) : 0}%`,
-                          backgroundColor: item.color,
-                        },
-                      ]}
-                    />
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+          {/* Rubric Breakdown hidden for End Users as per requirement */}
         </View>
 
         <View style={styles.card}>
@@ -253,7 +281,7 @@ const ResultScreen = ({ route, navigation }) => {
             <Text style={styles.promptText}>"In exactly 25 words, tell us why you should win this prize."</Text>
           </View>
           <Text style={styles.promptLabel}>Your Response</Text>
-          <Text style={styles.responseText}>"{entry?.score?.feedback || 'Response is being prepared.'}"</Text>
+          <Text style={styles.responseText}>"{entry?.content || 'Response is being prepared.'}"</Text>
           <View style={styles.metaRow}>
             <Text style={styles.metaText}>25 words</Text>
             <Text style={styles.metaText}>Locked</Text>
@@ -291,22 +319,22 @@ const ResultScreen = ({ route, navigation }) => {
           </TouchableOpacity>
           {showAudit && (
             <View style={styles.accordionBody}>
-              <View style={styles.auditRow}>
-                <Text style={styles.auditEvent}>Entry submitted and sealed</Text>
-                <Text style={styles.auditTs}>Hash: a3f8d2c1...</Text>
-              </View>
-              <View style={styles.auditRow}>
-                <Text style={styles.auditEvent}>AI evaluation completed</Text>
-                <Text style={styles.auditTs}>Hash: b9e1c7d3...</Text>
-              </View>
-              <View style={styles.auditRow}>
-                <Text style={styles.auditEvent}>Shortlist generated</Text>
-                <Text style={styles.auditTs}>Hash: d4f2a1e8...</Text>
-              </View>
-              <View style={[styles.auditRow, { borderBottomWidth: 0 }]}>
-                <Text style={styles.auditEvent}>Model: Lucid Engine AI TM v2.1.4</Text>
-                <Text style={styles.auditTs}>Deterministic seed: 2026-Q1</Text>
-              </View>
+              {auditEvents.length > 0 ? (
+                auditEvents.map((item, index) => (
+                  <View
+                    key={`${item.event}-${index}`}
+                    style={[styles.auditRow, index === auditEvents.length - 1 ? { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 } : null]}
+                  >
+                    <Text style={styles.auditEvent}>{item.event}</Text>
+                    <Text style={styles.auditTs}>Hash: {item.hash}</Text>
+                    <Text style={styles.auditTs}>{formatAuditTimestamp(item.occurred_at)}</Text>
+                  </View>
+                ))
+              ) : (
+                <View style={[styles.auditRow, { borderBottomWidth: 0, marginBottom: 0, paddingBottom: 0 }]}>
+                  <Text style={styles.auditEvent}>Audit events are being generated.</Text>
+                </View>
+              )}
             </View>
           )}
         </View>
@@ -315,11 +343,7 @@ const ResultScreen = ({ route, navigation }) => {
           <Text style={styles.primaryBtnText}>View All My Entries</Text>
         </TouchableOpacity>
 
-        <View style={styles.feedbackBox}>
-          <Text style={styles.feedbackText}>
-            "{entry.score.feedback}"
-          </Text>
-        </View>
+        {/* Evaluator Feedback hidden for End Users as per requirement */}
 
         <Text style={styles.disclaimer}>
           Pure skill. One prize. One winner.
@@ -341,7 +365,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SCREEN_PADDING_H,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 96,
   },
   mutedCenter: {
     color: TEXT_MUTED,
@@ -469,7 +493,7 @@ const styles = StyleSheet.create({
   breakdownLabel: {
     color: 'rgba(255,255,255,0.62)',
     fontSize: 14,
-    flex: 1,
+    width: 100,
   },
   breakdownValue: {
     color: '#FFF',
@@ -477,6 +501,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 10,
     textAlign: 'right',
+    flex: 1,
   },
   acceptedIconWrap: {
     backgroundColor: 'rgba(74,222,128,0.2)',
@@ -499,6 +524,7 @@ const styles = StyleSheet.create({
   scoreWrap: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     marginBottom: 10,
     gap: 14,
   },
@@ -524,11 +550,14 @@ const styles = StyleSheet.create({
   },
   scoreInfoCol: {
     flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
   },
   rankText: {
     color: '#FFF',
     fontSize: 24,
     fontWeight: '900',
+    flexShrink: 1,
   },
   rankSub: {
     color: 'rgba(255,255,255,0.42)',
@@ -685,29 +714,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
     letterSpacing: 0.6,
-  },
-  feedbackBox: {
-    marginBottom: 14,
-    padding: 14,
-    backgroundColor: 'rgba(161, 140, 255, 0.08)',
-    borderRadius: 12,
-    borderColor: 'rgba(161, 140, 255, 0.25)',
-    borderWidth: 1,
-  },
-  feedbackBoxInline: {
-    marginTop: 10,
-    padding: 14,
-    backgroundColor: 'rgba(161, 140, 255, 0.08)',
-    borderRadius: 12,
-    borderColor: 'rgba(161, 140, 255, 0.25)',
-    borderWidth: 1,
-  },
-  feedbackText: {
-    color: TEXT_MUTED,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    lineHeight: 20,
-    fontSize: 13,
   },
   disclaimer: {
     color: TEXT_MUTED,

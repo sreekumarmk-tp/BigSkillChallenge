@@ -50,7 +50,7 @@ export const AppProvider = ({ children }) => {
       const formData = new FormData();
       formData.append('username', email);
       formData.append('password', password);
-      
+
       const response = await api.post('/auth/login', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -72,10 +72,10 @@ export const AppProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await api.post('/auth/register', {
-          email,
-          password,
-          first_name: firstName,
-          last_name: lastName
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName
       });
       const token = response.data.access_token;
       const emailVerified = response.data.is_active ?? false;
@@ -105,21 +105,21 @@ export const AppProvider = ({ children }) => {
     setIsEmailVerified(true);
     await AsyncStorage.setItem('isEmailVerified', 'true');
   };
-  
+
   const processPayment = async (amount) => {
-      try {
-          if (!competition) return;
-          const res = await api.post('/payments/', {
-              competition_id: competition.id,
-              amount: amount
-          });
-          if (res.data.status === 'completed') {
-              setPaymentStatus(true);
-              return res.data;
-          }
-      } catch (e) {
-          throw e;
+    try {
+      if (!competition) return;
+      const res = await api.post('/payments/', {
+        competition_id: competition.id,
+        amount: amount
+      });
+      if (res.data.status === 'completed') {
+        setPaymentStatus(true);
+        return res.data;
       }
+    } catch (e) {
+      throw e;
+    }
   }
 
   const startQuiz = async (compId) => {

@@ -41,7 +41,7 @@ DESIGN SYSTEM:
   Green       #4ADE80 (success) · Red #F87171 (error) · Purple #C4B5FD
 
 PLATFORM NOTES:
-  Lucid Engine AI™ is a deterministic evaluation engine (not generative AI).
+  The evaluation system uses a deterministic rubric-based process (not generative AI).
   Entry fees held in a designated competition trust account.
   Final prize decisions made exclusively by 3 independent human judges.
   Prize winner verified by an independent scrutineer.

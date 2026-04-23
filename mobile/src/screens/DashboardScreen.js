@@ -81,6 +81,8 @@ const DashboardScreen = ({ navigation }) => {
     <ScreenShell>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NEON_CYAN} />
         }
@@ -203,9 +205,9 @@ const DashboardScreen = ({ navigation }) => {
                     {attempt.status.toUpperCase()}
                   </Text>
                 </View>
-                <Text style={styles.entryDate}>Competition ID: {attempt.competition_id}</Text>
-                <Text style={styles.entryDate}>Score: {attempt.score}/5</Text>
-                <Text style={styles.entryDate}>{new Date(attempt.created_at).toLocaleString()}</Text>
+                <Text style={styles.cardField}>Attempt ID: {attempt.id}</Text>
+                <Text style={styles.cardField}>Score: {attempt.score}/5</Text>
+                <Text style={styles.cardField}>{new Date(attempt.created_at).toLocaleString()}</Text>
               </View>
             ))}
           </ScrollView>
@@ -247,7 +249,8 @@ const DashboardScreen = ({ navigation }) => {
                         : 'Pending'}
                   </Text>
                 </View>
-                <Text style={styles.entryDate}>{new Date(entry.created_at).toLocaleDateString()}</Text>
+                <Text style={styles.cardField}>Entry ID: {entry.id}</Text>
+                <Text style={styles.cardField}>{new Date(entry.created_at).toLocaleDateString()}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -391,22 +394,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
-    padding: 16,
+    padding: 18,
     marginBottom: 12,
   },
   entryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: 10,
   },
   entryRef: {
     color: '#FFF',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 15,
+    flex: 1,
+    marginRight: 12,
   },
   entryStatus: {
     fontSize: 14,
     fontWeight: 'bold',
+    textAlign: 'right',
   },
   statusAccepted: {
     color: '#F59E0B',
@@ -423,9 +430,11 @@ const styles = StyleSheet.create({
   statusFailed: {
     color: '#FF6B6B',
   },
-  entryDate: {
+  cardField: {
     color: TEXT_MUTED,
     fontSize: 12,
+    lineHeight: 18,
+    marginTop: 6,
   },
   textShadowed: {
     ...getTextShadow(0.5, 4),
