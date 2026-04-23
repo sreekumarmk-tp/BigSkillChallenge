@@ -1,6 +1,7 @@
 from app import schemas
 from app.core.config import settings
-from app.services.scoring_graph import scoring_graph
+from app.services.scoring import scoring_graph
+import hashlib
 import random
 from langsmith import traceable
 
@@ -11,15 +12,27 @@ def get_llm():
     if provider == "groq":
         from langchain_groq import ChatGroq
         model_name = model or "llama-3.3-70b-versatile"
-        return ChatGroq(model_name=model_name, groq_api_key=settings.GROQ_API_KEY or settings.LLM_API_KEY)
+        return ChatGroq(
+            model_name=model_name, 
+            groq_api_key=settings.GROQ_API_KEY or settings.LLM_API_KEY,
+            temperature=0
+        )
     elif provider == "ollama":
         from langchain_ollama import ChatOllama
         model_name = model or "gemma4"
-        return ChatOllama(model=model_name, base_url=settings.OLLAMA_BASE_URL)
+        return ChatOllama(
+            model=model_name, 
+            base_url=settings.OLLAMA_BASE_URL,
+            temperature=0
+        )
     elif provider == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
         model_name = model or "gemini-1.5-flash"
-        return ChatGoogleGenerativeAI(model=model_name, google_api_key=settings.LLM_API_KEY)
+        return ChatGoogleGenerativeAI(
+            model=model_name, 
+            google_api_key=settings.LLM_API_KEY,
+            temperature=0
+        )
     
     return None
 
@@ -39,11 +52,14 @@ async def evaluate_entry(content: str) -> schemas.ScoreResponse:
     llm = get_llm()
     
     if settings.LLM_PROVIDER == "mock" or not llm:
-        # Deterministic dummy scoring
-        relevance = round(random.uniform(70, 95), 2)
-        creativity = round(random.uniform(60, 95), 2)
-        clarity = round(random.uniform(75, 95), 2)
-        impact = round(random.uniform(65, 95), 2)
+        # Deterministic dummy scoring using hash of content as seed
+        seed = int(hashlib.md5(content.encode()).hexdigest(), 16) % (2**32)
+        rng = random.Random(seed)
+        
+        relevance = round(rng.uniform(70, 95), 2)
+        creativity = round(rng.uniform(60, 95), 2)
+        clarity = round(rng.uniform(75, 95), 2)
+        impact = round(rng.uniform(65, 95), 2)
         total = round((relevance + creativity + clarity + impact) / 4, 2)
         
         return schemas.ScoreResponse(
@@ -52,7 +68,7 @@ async def evaluate_entry(content: str) -> schemas.ScoreResponse:
             clarity_score=clarity,
             impact_score=impact,
             total_score=total,
-            feedback="Great effort! Your response has been evaluated by the AI engine (mock)."
+            feedback="Great effort! Your response has been evaluated by the AI engine (mock-deterministic)."
         )
         
     # Execute graph
