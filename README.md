@@ -52,26 +52,41 @@ cd backend
 # Create your .env file
 cp .env.example .env
 # Edit .env and add your details (especially SMTP for OTP and LangSmith keys)
+```
 
-# Ensure PostgreSQL is ready:
-./scripts/ensure_postgres.sh
+#### 🤖 Choosing Your AI Provider
 
-# Create and activate a Python virtual environment
-python3 -m venv venv
-source venv/bin/activate
+The scoring engine supports multiple LLM backends. Configure this in `backend/.env` via `LLM_PROVIDER`:
 
-# Install dependencies
-pip install uv
-uv pip install -r requirements.txt
+| Provider | Best For... | Requirements |
+| :--- | :--- | :--- |
+| **Groq** | **Speed & Latency**. Near-instant scoring. | `GROQ_API_KEY` (from console.groq.com) |
+| **Gemini** | **Reasoning & Reliability**. Google's flagship models. | `LLM_API_KEY` (from aistudio.google.com) |
+| **Ollama** | **Privacy & Local Dev**. 100% offline, no API costs. | Local [Ollama](https://ollama.com/) installation + `gemma2` or `llama3` model. |
+| **Mock** | **Testing**. Deterministic scores without calling any API. | No API key required. |
 
+> [!TIP]
+> For production-grade speed, **Groq** is recommended. For local development without internet, **Ollama** is the best choice.
+
+```bash
 # Start the FastAPI server
+# Note: The backend will automatically detect if PostgreSQL is running locally.
+# If not found, it will attempt to start it via Docker Compose.
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+> [!TIP]
+> You can also run the database setup manually using `python scripts/setup_db.py`.
 > The API will be available at `http://localhost:8000`.
 > The **Admin Panel** is available at `http://localhost:8000/admin`.
 > - **Default Admin**: `admin@bigskillchallenge.com` / `admin123_change_me`
 
-### 2. Starting the Mobile Application (React Native / Expo)
+
+
+
+
+
+
+### 3. Starting the Mobile Application (React Native / Expo)
 
 ```bash
 # Navigate to the mobile directory
@@ -88,7 +103,6 @@ cp .env.example .env
 npx expo start
 ```
 
----
 
 ## 🔄 Project Workflow
 

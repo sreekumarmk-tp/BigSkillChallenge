@@ -2,6 +2,11 @@ print("Loading main.py...")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.core.db_setup import ensure_db_running
+
+# Ensure database is running before anything else
+ensure_db_running()
+
 from app.api import auth, competition, payment, submission, quiz
 from app.database import engine
 from app import models
