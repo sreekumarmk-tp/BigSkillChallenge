@@ -68,6 +68,27 @@ The scoring engine supports multiple LLM backends. Configure this in `backend/.e
 > [!TIP]
 > For production-grade speed, **Groq** is recommended. For local development without internet, **Ollama** is the best choice.
 
+#### 📦 Environment Setup (using `uv`)
+
+We recommend using [uv](https://github.com/astral-sh/uv) for extremely fast dependency installation.
+
+```bash
+# 1. Install uv
+# Via pip (recommended if pip is already installed):
+pip install uv
+
+# OR via standalone installer:
+# Linux/macOS: curl -LsSf https://astral.sh/uv/install.sh | sh
+# Windows: powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# 2. Setup and Activate Virtual Environment
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# 3. Install dependencies from requirements.txt
+uv pip install -r requirements.txt
+```
+
 ```bash
 # Start the FastAPI server
 # Note: The backend will automatically detect if PostgreSQL is running locally.
