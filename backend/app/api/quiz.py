@@ -62,7 +62,7 @@ def get_quiz_questions(
     
     # Create new attempt record
     attempt = models.QuizAttempt(
-        user_id=current_user.id,
+        user_id=str(current_user.id),
         competition_id=competition_id_str,
         attempt_number=attempts_count + 1,
         status="pending"
@@ -101,7 +101,7 @@ def start_quiz(
     
     # Create new attempt record
     attempt = models.QuizAttempt(
-        user_id=current_user.id,
+        user_id=str(current_user.id),
         competition_id=competition_id_str,
         attempt_number=attempts_count + 1,
         status="pending"

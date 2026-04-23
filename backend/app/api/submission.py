@@ -142,8 +142,8 @@ async def create_submission(
     
     # Create the entry
     entry = models.Entry(
-        user_id=current_user.id,
-        competition_id=entry_in.competition_id,
+        user_id=str(current_user.id),
+        competition_id=str(entry_in.competition_id),
         content=entry_in.content,
         status="scored"
     )
