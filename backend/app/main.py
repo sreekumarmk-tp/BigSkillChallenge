@@ -1,8 +1,13 @@
 print("Loading main.py...")
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.db_setup import ensure_db_running
+from app.core.limiter import limiter
 
 # Ensure database is running before anything else
 ensure_db_running()
@@ -15,23 +20,26 @@ from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime
 from sqlalchemy import inspect, text
 
-# Create tables
-# try:
-#     models.Base.metadata.create_all(bind=engine)
-# except Exception as e:
-#     print("Database connection failed. It might not be ready yet.")
-
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+# -----------------------------------------------------------------------
+# P1: Rate limiting — attach the shared limiter to the app.
+# Individual endpoints declare tighter limits via @limiter.limit().
+# The global default of 200/min applies to all other endpoints.
+# -----------------------------------------------------------------------
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
 cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
+
 
 @app.on_event("startup")
 def startup_event():
     # One-time schema reset for legacy integer-id databases.
-    # This project now uses UUID string ids across all core tables.
     try:
         inspector = inspect(engine)
         users_columns = {col["name"]: str(col["type"]).lower() for col in inspector.get_columns("users")}
@@ -48,24 +56,46 @@ def startup_event():
     except Exception as e:
         print(f"Legacy UUID schema check skipped/failed: {e}")
 
-    # Create tables safely on startup
+    # Create all tables (safe — skips existing tables)
     try:
         models.Base.metadata.create_all(bind=engine)
     except Exception as e:
         print(f"Database table creation failed: {e}")
 
-    # Lightweight startup migration for existing databases:
-    # ensure competitions table has start/end date columns.
+    # -----------------------------------------------------------------------
+    # Lightweight startup migrations — add new columns to existing databases.
+    # Each ALTER is guarded so it only runs when the column is missing.
+    # -----------------------------------------------------------------------
+    _migrations = [
+        # Original migrations
+        ("competitions", "start_date",                   "ALTER TABLE competitions ADD COLUMN start_date TIMESTAMP"),
+        ("competitions", "end_date",                     "ALTER TABLE competitions ADD COLUMN end_date TIMESTAMP"),
+        # P0 — Payment refund tracking
+        ("payments",     "stripe_payment_intent_id",     "ALTER TABLE payments ADD COLUMN stripe_payment_intent_id VARCHAR(100)"),
+        ("payments",     "refund_id",                    "ALTER TABLE payments ADD COLUMN refund_id VARCHAR(100)"),
+        ("payments",     "refunded_at",                  "ALTER TABLE payments ADD COLUMN refunded_at TIMESTAMP"),
+        # P0/P1 — Entry trust chain
+        ("entries",      "payment_id",                   "ALTER TABLE entries ADD COLUMN payment_id VARCHAR(36) REFERENCES payments(id)"),
+        ("entries",      "device_id",                    "ALTER TABLE entries ADD COLUMN device_id VARCHAR(100)"),
+        # P1 — Quiz time-window support
+        ("quiz_attempts","passed_at",                    "ALTER TABLE quiz_attempts ADD COLUMN passed_at TIMESTAMP"),
+        # P2 — Prompt versioning on scores
+        ("scores",       "prompt_version",               "ALTER TABLE scores ADD COLUMN prompt_version VARCHAR(20)"),
+    ]
+
     try:
         inspector = inspect(engine)
-        competition_columns = {col["name"] for col in inspector.get_columns("competitions")}
         with engine.begin() as conn:
-            if "start_date" not in competition_columns:
-                conn.execute(text("ALTER TABLE competitions ADD COLUMN start_date TIMESTAMP"))
-            if "end_date" not in competition_columns:
-                conn.execute(text("ALTER TABLE competitions ADD COLUMN end_date TIMESTAMP"))
+            for table, col, ddl in _migrations:
+                try:
+                    existing_cols = {c["name"] for c in inspector.get_columns(table)}
+                    if col not in existing_cols:
+                        conn.execute(text(ddl))
+                        print(f"Migration applied: {table}.{col}")
+                except Exception as col_err:
+                    print(f"Migration skipped ({table}.{col}): {col_err}")
     except Exception as e:
-        print(f"Competition date column migration skipped/failed: {e}")
+        print(f"Startup migration block failed: {e}")
 
     from app.database import SessionLocal
     db = SessionLocal()
@@ -83,12 +113,11 @@ def startup_event():
             db.add(default_comp)
             db.commit()
         elif not comp.start_date or not comp.end_date:
-            # Backfill dates for existing active competition records.
             comp.start_date = comp.start_date or datetime(2026, 1, 30, 0, 0, 0)
             comp.end_date = comp.end_date or datetime(2026, 4, 29, 23, 59, 59)
             db.commit()
+
         # Seed questions
-        # Clear existing questions to ensure we use the new AI-specific ones
         db.query(models.Question).delete()
         ai_questions = [
             # Agentic AI
@@ -102,7 +131,6 @@ def startup_event():
             ("What is the 'Planning' phase in an agentic system?", "Determining the sequence of steps to solve a goal", "Buying compute resources", "Writing the system prompt", "Cleaning the dataset", "A"),
             ("What does 'Human-in-the-loop' mean?", "Requiring human intervention or approval at certain steps", "A human wearing a VR headset", "The AI replacing a human entirely", "Data being labeled by humans", "A"),
             ("Which component handles the selection of tools in an agent?", "The LLM (Controller)", "The Database", "The UI", "The Network Layer", "A"),
-
             # Generative AI & LLMs
             ("What does 'LLM' stand for?", "Large Language Model", "Long Linear Model", "Latent Logic Model", "Local Language Model", "A"),
             ("Which architecture is the foundation of most modern LLMs?", "Transformer", "RNN", "CNN", "LSTM", "A"),
@@ -114,8 +142,7 @@ def startup_event():
             ("Which company developed the Llama models?", "Meta", "Google", "OpenAI", "Microsoft", "A"),
             ("What is 'Temperature' in LLM sampling?", "A parameter controlling the randomness of the output", "The physical heat of the GPU", "The speed of the model", "The complexity of the prompt", "A"),
             ("What is 'Fine-tuning'?", "Training a pre-trained model on a specific dataset for a task", "Adjusting the volume of the response", "Writing better prompts", "Reducing the size of the model", "A"),
-
-            # RAG (Retrieval-Augmented Generation)
+            # RAG
             ("What does 'RAG' stand for?", "Retrieval-Augmented Generation", "Random Access Generation", "Research and Guidance", "Rapid AI Generation", "A"),
             ("What is the primary benefit of RAG?", "Reducing hallucinations by providing external facts", "Making the model faster", "Reducing the cost of training", "Improving the model's creative writing", "A"),
             ("What is a 'Vector Database' used for in RAG?", "Storing and retrieving semantic embeddings", "Storing SQL tables", "Storing image files", "Storing user passwords", "A"),
@@ -126,8 +153,7 @@ def startup_event():
             ("What is 'Dense Retrieval'?", "Retrieval based on semantic embeddings", "Retrieval based on keyword matching", "Retrieval of large files", "Retrieval from local storage", "A"),
             ("What is 'Top-K' in retrieval?", "The number of most relevant documents to retrieve", "The quality score of the model", "The speed of the database", "The version of the retriever", "A"),
             ("What is 'Hybrid Search'?", "Combining keyword (BM25) and semantic search", "Searching two databases at once", "Searching on both CPU and GPU", "Searching using text and audio", "A"),
-
-            # MCP (Model Context Protocol) 
+            # MCP
             ("What is the 'Model Context Protocol' (MCP)?", "An open standard for connecting AI models to data/tools", "An open source protocol for model training", "A type of prompt engineering", "A security layer for LLMs", "A"),
             ("Who introduced the Model Context Protocol?", "Anthropic", "OpenAI", "Google", "Meta", "A"),
             ("What is the role of an 'MCP Server'?", "To provide data, tools, or resources to an LLM", "To execute the LLM inference", "To store model weights", "To manage user auth", "A"),
@@ -138,7 +164,6 @@ def startup_event():
             ("Can MCP servers run on a local machine?", "Yes", "No", "Only if connected via VPN", "Only in Docker containers", "A"),
             ("What format does MCP use for server/client communication?", "JSON-RPC", "XML", "Protobuf", "CSV", "A"),
             ("Does MCP allow LLMs to safely interact with local files?", "Yes, via specific server-defined boundaries", "No, it is for cloud files only", "Yes, it gives full unrestricted access", "No, it only allows read Access", "A"),
-
             # Mixed / Advanced AI
             ("What is 'PEFT'?", "Parameter-Efficient Fine-Tuning", "Primary Engine for Fast Training", "Private Encryption for Text", "Pre-calculated Embedding Factor", "A"),
             ("What is 'LoRA'?", "Low-Rank Adaptation of LLMs", "Long-Range AI", "Local Retrieval Algorithm", "Logic-based Reasoning Agent", "A"),
@@ -149,17 +174,13 @@ def startup_event():
             ("What is 'Grokking' in neural networks?", "A phenomenon where a model suddenly masters a task after long training", "A new Google model", "A type of overfitting", "A way to compress models", "A"),
             ("What is 'MoE'?", "Mixture of Experts", "Master of Engineering", "Module of Everything", "Model of Empathy", "A"),
             ("Which company created the 'Gemini' models?", "Google", "OpenAI", "Anthropic", "Meta", "A"),
-            ("What is 'Multimodality' in AI?", "The ability to process multiple types of data (text, image, audio)", "The ability to run on many servers", "Having multiple versions of a model", "Speaking many languages", "A")
+            ("What is 'Multimodality' in AI?", "The ability to process multiple types of data (text, image, audio)", "The ability to run on many servers", "Having multiple versions of a model", "Speaking many languages", "A"),
         ]
-        
+
         questions = [
             models.Question(
-                text=q[0],
-                option_a=q[1],
-                option_b=q[2],
-                option_c=q[3],
-                option_d=q[4],
-                correct_answer=q[5]
+                text=q[0], option_a=q[1], option_b=q[2],
+                option_c=q[3], option_d=q[4], correct_answer=q[5]
             ) for q in ai_questions
         ]
         db.bulk_save_objects(questions)
@@ -182,6 +203,7 @@ def startup_event():
     finally:
         db.close()
 
+
 # Add Session Middleware for Admin Auth
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
@@ -203,9 +225,11 @@ app.include_router(payment.router, prefix=f"{settings.API_V1_STR}/payments", tag
 app.include_router(submission.router, prefix=f"{settings.API_V1_STR}/submissions", tags=["submissions"])
 app.include_router(quiz.router, prefix=f"{settings.API_V1_STR}/quiz", tags=["quiz"])
 
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Big Skill Challenge API"}
+
 
 if __name__ == "__main__":
     import uvicorn

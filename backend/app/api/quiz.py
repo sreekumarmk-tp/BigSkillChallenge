@@ -175,6 +175,9 @@ def submit_quiz(
     # Final check: did they answer all 5 and were they all correct?
     if attempt.score == 5:
         attempt.status = "passed"
+        # P1: Record the exact time the quiz was passed — used by submission time-window.
+        from datetime import datetime, timezone
+        attempt.passed_at = datetime.now(timezone.utc).replace(tzinfo=None)
     else:
         attempt.status = "failed"
         

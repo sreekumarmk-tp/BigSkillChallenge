@@ -171,4 +171,9 @@ graph LR
 - [x] **SQLAlchemy Admin** with restricted permissions and statistical dashboard.
 - [x] **Mobile State Management** using Context API for cross-screen persistence.
 - [x] **Paste-Blocking Hooks** implemented on creative submission screens.
+- [x] **Stripe Integration & Payment Mocks** with safe fallback for web bundles.
+- [x] **Rate Limiting & Anti-Abuse** via `slowapi` and strict 10-entry submission caps.
+- [x] **System Hardening** including database connection pooling, background tasks, and parameter pinning for deterministic AI.
+- [x] **Comprehensive Testing Suites** using `pytest` for the backend and `Jest` for the React Native mobile app.
+- [x] **Privacy & Security** by restricting evaluator feedback from the public Result Screen.
 

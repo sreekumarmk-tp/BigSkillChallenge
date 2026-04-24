@@ -1,4 +1,4 @@
-fastapi>=0.135.3
+fastapi>=0.115.0
 uvicorn>=0.30.0
 sqlalchemy>=2.0.35
 psycopg[binary]>=3.2.0
@@ -19,3 +19,6 @@ langchain-google-genai
 langchain-groq
 langchain-community>=0.3.14
 langchain-ollama
+langsmith>=0.1.0
+stripe>=9.0.0
+slowapi>=0.1.9

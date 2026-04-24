@@ -4,6 +4,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Big Skill Challenge MVP"
+    ENVIRONMENT: str = "dev" # options: "dev", "qa", "prod"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = "supersecretkey_change_in_production"
     ALGORITHM: str = "HS256"
@@ -42,6 +43,24 @@ class Settings(BaseSettings):
     LANGCHAIN_ENDPOINT: Optional[str] = "https://api.smith.langchain.com"
     LANGCHAIN_API_KEY: Optional[str] = None
     LANGCHAIN_PROJECT: Optional[str] = "Big-Skill-Challenge"
+
+    # -----------------------------------------------------------------------
+    # P0: Stripe payment settings
+    # Set STRIPE_SECRET_KEY to your live/test secret key from stripe.com.
+    # Set STRIPE_WEBHOOK_SECRET to the signing secret from your webhook endpoint.
+    # -----------------------------------------------------------------------
+    STRIPE_SECRET_KEY: Optional[str] = None          # sk_live_... or sk_test_...
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None      # whsec_...
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = None     # pk_live_... or pk_test_...
+
+    # -----------------------------------------------------------------------
+    # P0/P1: Competition integrity settings
+    # -----------------------------------------------------------------------
+    # Maximum creative entries a single user may submit per competition.
+    MAX_ENTRIES_PER_USER: int = 10
+    # Minutes after a quiz pass within which a creative submission is accepted.
+    # Set to 0 to disable the window entirely.
+    SUBMISSION_WINDOW_MINUTES: int = 60
 
     @property
     def DATABASE_URL(self) -> str:

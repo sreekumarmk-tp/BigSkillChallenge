@@ -52,7 +52,19 @@ class CompetitionResponse(CompetitionBase):
 class PaymentCreate(BaseModel):
     competition_id: UUID
     amount: float
-    # In a real system, would include a payment method token
+
+# P0: Client creates a PaymentIntent via this request.
+class PaymentIntentCreate(BaseModel):
+    competition_id: UUID
+    amount: float
+
+# P0: Returned to the mobile client after PaymentIntent creation.
+class PaymentIntentResponse(BaseModel):
+    payment_record_id: UUID          # Our internal Payment.id
+    client_secret: str               # Stripe client_secret — used by the mobile SDK
+    publishable_key: str             # Stripe publishable key for the mobile SDK
+    amount: float
+    currency: str = "usd"
 
 class PaymentResponse(BaseModel):
     id: UUID
@@ -61,8 +73,21 @@ class PaymentResponse(BaseModel):
     amount: float
     status: str
     transaction_id: Optional[str] = None
+    stripe_payment_intent_id: Optional[str] = None
+    refund_id: Optional[str] = None
+    refunded_at: Optional[datetime] = None
     created_at: datetime
     
+    class Config:
+        from_attributes = True
+
+# P0: Response after an admin-initiated refund
+class PaymentRefundResponse(BaseModel):
+    payment_id: UUID
+    refund_id: str
+    status: str
+    refunded_at: datetime
+
     class Config:
         from_attributes = True
 
@@ -70,6 +95,8 @@ class PaymentResponse(BaseModel):
 class EntryCreate(BaseModel):
     competition_id: UUID
     content: str
+    # P2: Optional device fingerprint sent by the mobile app for anti-cheat audit
+    device_id: Optional[str] = None
     
 class ScoreResponse(BaseModel):
     relevance_score: float
@@ -78,6 +105,8 @@ class ScoreResponse(BaseModel):
     impact_score: float
     total_score: float
     feedback: str
+    # P2: Prompt version used when scoring — allows re-scoring audit
+    prompt_version: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -90,6 +119,7 @@ class EntryResponse(BaseModel):
     status: str
     is_shortlisted: bool
     is_winner: bool
+    device_id: Optional[str] = None
     created_at: datetime
     score: Optional[ScoreResponse] = None
     
@@ -138,13 +168,14 @@ class QuizAttemptResponse(QuizAttemptBase):
     status: str
     score: int
     created_at: datetime
+    passed_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True
 
 class AnswerSubmission(BaseModel):
     question_id: UUID
-    answer: str # A, B, C, or D
+    answer: str  # A, B, C, or D
 
 class AnswerEvaluationRequest(BaseModel):
     attempt_id: UUID
