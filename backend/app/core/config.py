@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: str = "5432"
     
+    # Redis settings
+    REDIS_URL: str = "redis://localhost:6379/0"
+    
     # SMTP Settings
     SMTP_TLS: bool = True
     SMTP_PORT: Optional[int] = 587

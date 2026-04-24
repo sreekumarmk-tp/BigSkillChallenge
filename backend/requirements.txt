@@ -22,3 +22,5 @@ langchain-ollama
 langsmith>=0.1.0
 stripe>=9.0.0
 slowapi>=0.1.9
+arq>=0.26.0
+redis>=5.0.0

@@ -8,10 +8,12 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.core.config import settings
 from app.core.db_setup import ensure_db_running
+from app.core.redis_setup import ensure_redis_running
 from app.core.limiter import limiter
 
-# Ensure database is running before anything else
+# Ensure infrastructure services are running before anything else
 ensure_db_running()
+ensure_redis_running()
 
 from app.api import auth, competition, payment, submission, quiz
 from app.database import engine
@@ -42,7 +44,15 @@ cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if
 
 
 @app.on_event("startup")
-def startup_event():
+async def startup_event():
+    # Initialize Redis pool for arq
+    from app.core.redis import get_redis_pool
+    try:
+        app.state.redis_pool = await get_redis_pool()
+        print("Redis pool initialized.")
+    except Exception as e:
+        print(f"Failed to initialize Redis pool: {e}")
+
     # One-time schema reset for legacy integer-id databases.
     try:
         inspector = inspect(engine)
@@ -124,7 +134,6 @@ def startup_event():
         # Seed questions
         db.query(models.Question).delete()
         ai_questions = [
-            # Agentic AI
             ("What does 'ReAct' stand for in the context of AI agents?", "Reason and Act", "Retrieve and Act", "React and Action", "Reason and Action", "A"),
             ("Which framework is commonly used for building multi-agent systems?", "AutoGen", "Pandas", "React.js", "Django", "A"),
             ("What is the primary role of an 'AIAgent'?", "To perform tasks autonomously using tools", "To only chat with users", "To store data in a database", "To provide static answers", "A"),
@@ -132,10 +141,9 @@ def startup_event():
             ("What is 'Chain of Thought' prompting?", "A technique where the model explains its reasoning step-by-step", "A way to link multiple LLMs", "A method for faster inference", "A way to compress models", "A"),
             ("Which of these is a common autonomous agent project?", "BabyAGI", "OpenCV", "TensorFlow", "PyTorch", "A"),
             ("What is 'Self-Reflection' in AI agents?", "The agent reviewing its own output to correct errors", "The agent looking in a mirror", "The agent stopping execution", "The agent asking for user input", "A"),
-            ("What is the 'Planning' phase in an agentic system?", "Determining the sequence of steps to solve a goal", "Buying compute resources", "Writing the system prompt", "Cleaning the dataset", "A"),
+            ("What is 'Planning' phase in an agentic system?", "Determining the sequence of steps to solve a goal", "Buying compute resources", "Writing the system prompt", "Cleaning the dataset", "A"),
             ("What does 'Human-in-the-loop' mean?", "Requiring human intervention or approval at certain steps", "A human wearing a VR headset", "The AI replacing a human entirely", "Data being labeled by humans", "A"),
             ("Which component handles the selection of tools in an agent?", "The LLM (Controller)", "The Database", "The UI", "The Network Layer", "A"),
-            # Generative AI & LLMs
             ("What does 'LLM' stand for?", "Large Language Model", "Long Linear Model", "Latent Logic Model", "Local Language Model", "A"),
             ("Which architecture is the foundation of most modern LLMs?", "Transformer", "RNN", "CNN", "LSTM", "A"),
             ("What is 'Tokenization'?", "Breaking text into smaller units like words or subwords", "Encrypting text", "Translating text", "Storing text in a database", "A"),
@@ -146,7 +154,6 @@ def startup_event():
             ("Which company developed the Llama models?", "Meta", "Google", "OpenAI", "Microsoft", "A"),
             ("What is 'Temperature' in LLM sampling?", "A parameter controlling the randomness of the output", "The physical heat of the GPU", "The speed of the model", "The complexity of the prompt", "A"),
             ("What is 'Fine-tuning'?", "Training a pre-trained model on a specific dataset for a task", "Adjusting the volume of the response", "Writing better prompts", "Reducing the size of the model", "A"),
-            # RAG
             ("What does 'RAG' stand for?", "Retrieval-Augmented Generation", "Random Access Generation", "Research and Guidance", "Rapid AI Generation", "A"),
             ("What is the primary benefit of RAG?", "Reducing hallucinations by providing external facts", "Making the model faster", "Reducing the cost of training", "Improving the model's creative writing", "A"),
             ("What is a 'Vector Database' used for in RAG?", "Storing and retrieving semantic embeddings", "Storing SQL tables", "Storing image files", "Storing user passwords", "A"),
@@ -157,7 +164,6 @@ def startup_event():
             ("What is 'Dense Retrieval'?", "Retrieval based on semantic embeddings", "Retrieval based on keyword matching", "Retrieval of large files", "Retrieval from local storage", "A"),
             ("What is 'Top-K' in retrieval?", "The number of most relevant documents to retrieve", "The quality score of the model", "The speed of the database", "The version of the retriever", "A"),
             ("What is 'Hybrid Search'?", "Combining keyword (BM25) and semantic search", "Searching two databases at once", "Searching on both CPU and GPU", "Searching using text and audio", "A"),
-            # MCP
             ("What is the 'Model Context Protocol' (MCP)?", "An open standard for connecting AI models to data/tools", "An open source protocol for model training", "A type of prompt engineering", "A security layer for LLMs", "A"),
             ("Who introduced the Model Context Protocol?", "Anthropic", "OpenAI", "Google", "Meta", "A"),
             ("What is the role of an 'MCP Server'?", "To provide data, tools, or resources to an LLM", "To execute the LLM inference", "To store model weights", "To manage user auth", "A"),
@@ -168,12 +174,11 @@ def startup_event():
             ("Can MCP servers run on a local machine?", "Yes", "No", "Only if connected via VPN", "Only in Docker containers", "A"),
             ("What format does MCP use for server/client communication?", "JSON-RPC", "XML", "Protobuf", "CSV", "A"),
             ("Does MCP allow LLMs to safely interact with local files?", "Yes, via specific server-defined boundaries", "No, it is for cloud files only", "Yes, it gives full unrestricted access", "No, it only allows read Access", "A"),
-            # Mixed / Advanced AI
             ("What is 'PEFT'?", "Parameter-Efficient Fine-Tuning", "Primary Engine for Fast Training", "Private Encryption for Text", "Pre-calculated Embedding Factor", "A"),
             ("What is 'LoRA'?", "Low-Rank Adaptation of LLMs", "Long-Range AI", "Local Retrieval Algorithm", "Logic-based Reasoning Agent", "A"),
             ("What is 'Quantization' in LLMs?", "Reducing the precision of model weights to save memory", "Increasing the number of layers", "Sampling more tokens", "Improving model accuracy", "A"),
             ("What is 'In-context Learning'?", "The model learning from examples provided in the prompt", "The model training on new data", "The model surfing the web", "The model asking for feedback", "A"),
-            ("What is the 'Stochastic Parrot' argument?", "The idea that LLMs only predict next tokens without understanding", "The idea that LLMs are sentient", "A type of data augmentation", "A new model architecture", "A"),
+            ("What is 'Stochastic Parrot' argument?", "The idea that LLMs only predict next tokens without understanding", "The idea that LLMs are sentient", "A type of data augmentation", "A new model architecture", "A"),
             ("What is 'DPO'?", "Direct Preference Optimization", "Data Privacy Office", "Distributed Power Output", "Dual Prompt Operation", "A"),
             ("What is 'Grokking' in neural networks?", "A phenomenon where a model suddenly masters a task after long training", "A new Google model", "A type of overfitting", "A way to compress models", "A"),
             ("What is 'MoE'?", "Mixture of Experts", "Master of Engineering", "Module of Everything", "Model of Empathy", "A"),
@@ -207,6 +212,12 @@ def startup_event():
     finally:
         db.close()
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    # Close Redis pool
+    if hasattr(app.state, "redis_pool"):
+        await app.state.redis_pool.close()
+        print("Redis pool closed.")
 
 # Add Session Middleware for Admin Auth
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)

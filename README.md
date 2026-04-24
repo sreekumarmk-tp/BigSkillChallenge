@@ -24,10 +24,12 @@ graph TD
         Auth["Auth Service (JWT/OTP)"]
         Scoring["AI Scoring Engine (LangGraph)"]
         Tracing["LangSmith Tracing"]
+        Worker["Background Worker (arq)"]
     end
     
     subgraph persistence ["Data Layer"]
         DB[(PostgreSQL Database)]
+        Redis[(Redis Task Queue)]
     end
     
     API <--> Auth
@@ -35,6 +37,10 @@ graph TD
     Scoring <--> Tracing
     API <--> DB
     AdminPanel <--> DB
+    API -- Enqueue Task --> Redis
+    Redis <--> Worker
+    Worker <--> DB
+    Worker <--> Scoring
 ```
 
 ---
@@ -43,7 +49,7 @@ graph TD
 
 ### 1. Starting the Backend (FastAPI & PostgreSQL)
 
-The backend runs on **Python 3.10+** and uses **Docker Compose** to manage the PostgreSQL database.
+The backend runs on **Python 3.10+** and uses **Docker Compose** to manage the PostgreSQL and **Redis** services.
 
 ```bash
 # Navigate to the backend directory
@@ -53,6 +59,14 @@ cd backend
 cp .env.example .env
 # Edit .env and add your details (especially SMTP for OTP and LangSmith keys)
 ```
+
+#### 🛠 Dependencies
+The system requires **PostgreSQL** (for data) and **Redis** (for background task persistence).
+- **PostgreSQL**: Stores users, competitions, and scores.
+- **Redis**: Powers the `arq` task queue for asynchronous AI scoring.
+
+> [!NOTE]
+> The backend automatically detects if PostgreSQL and Redis are running locally. If not found, it will attempt to start them via `docker-compose`.
 
 #### 🤖 Choosing Your AI Provider
 
@@ -91,8 +105,6 @@ uv pip install -r requirements.txt
 
 ```bash
 # Start the FastAPI server
-# Note: The backend will automatically detect if PostgreSQL is running locally.
-# If not found, it will attempt to start it via Docker Compose.
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 > [!TIP]
@@ -101,11 +113,18 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 > The **Admin Panel** is available at `http://localhost:8000/admin`.
 > - **Default Admin**: `admin@bigskillchallenge.com` / `admin123_change_me`
 
+### 2. Starting the Background Worker (arq)
 
+AI scoring is handled asynchronously to ensure a responsive user experience. You must run the worker service alongside the API.
 
+```bash
+# Ensure you are in the backend directory and venv is active
+cd backend
+source .venv/bin/activate
 
-
-
+# Start the arq worker
+arq app.worker.WorkerSettings
+```
 
 ### 3. Starting the Mobile Application (React Native / Expo)
 
@@ -219,6 +238,6 @@ graph LR
 - [x] **Paste-Blocking Hooks** implemented on creative submission screens.
 - [x] **Stripe Integration & Payment Mocks** with safe fallback for web bundles.
 - [x] **Rate Limiting & Anti-Abuse** via `slowapi` and strict 10-entry submission caps.
-- [x] **System Hardening** including database connection pooling, background tasks, and parameter pinning for deterministic AI.
+- [x] **System Hardening** including database connection pooling, **persistent Redis background tasks**, and parameter pinning for deterministic AI.
 - [x] **Comprehensive Testing Suites** using `pytest` for the backend and `Jest` for the React Native mobile app.
 - [x] **Privacy & Security** by restricting evaluator feedback from the public Result Screen.

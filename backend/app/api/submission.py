@@ -1,7 +1,7 @@
 from typing import Any, List
 from datetime import datetime, timezone
 from hashlib import sha256
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Header, Request
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -9,7 +9,6 @@ from app import models, schemas
 from app.api import deps
 from app.core.config import settings
 from app.core.limiter import limiter
-from app.services.ai_adapter import evaluate_entry
 
 router = APIRouter()
 
@@ -17,38 +16,6 @@ router = APIRouter()
 def _build_audit_hash(entry_id: str, event: str, marker: str) -> str:
     digest = sha256(f"{entry_id}:{event}:{marker}".encode("utf-8")).hexdigest()
     return digest[:12]
-
-
-async def _score_and_save(entry_id: str, content: str, db_session_factory) -> None:
-    """P1: Background task — decouples LLM scoring from the HTTP response.
-    Runs after the HTTP 201 is already returned to the client.
-    """
-    from app.database import SessionLocal
-    db = SessionLocal()
-    try:
-        scoring_result = await evaluate_entry(content)
-        entry = db.query(models.Entry).filter(models.Entry.id == entry_id).first()
-        if not entry:
-            return
-        score = models.Score(
-            entry_id=entry_id,
-            relevance_score=scoring_result.relevance_score,
-            creativity_score=scoring_result.creativity_score,
-            clarity_score=scoring_result.clarity_score,
-            impact_score=scoring_result.impact_score,
-            total_score=scoring_result.total_score,
-            feedback=scoring_result.feedback,
-            prompt_version=scoring_result.prompt_version,
-        )
-        db.add(score)
-        entry.status = "scored"
-        db.commit()
-    except Exception as exc:
-        # Log but do not crash — entry stays in "submitted" state and can be re-scored.
-        import logging
-        logging.getLogger(__name__).error(f"Background scoring failed for {entry_id}: {exc}")
-    finally:
-        db.close()
 
 
 @router.get("/me", response_model=List[schemas.EntryResponse])
@@ -163,12 +130,11 @@ def get_entry_audit_trail(
 
 
 @router.post("/", response_model=schemas.EntryResponse, status_code=201)
-@limiter.limit("5/minute")  # P1: Anti-abuse — max 5 submission attempts per minute per user
+@limiter.limit("5/minute")  # Anti-abuse — max 5 submission attempts per minute per user
 async def create_submission(
     *,
-    request: Request,  # Required by slowapi
+    request: Request,
     db: Session = Depends(deps.get_db),
-    background_tasks: BackgroundTasks,
     entry_in: schemas.EntryCreate,
     current_user: models.User = Depends(deps.get_current_active_user),
     x_device_id: str = Header(default=None, alias="X-Device-Id"),
@@ -209,7 +175,6 @@ async def create_submission(
                 detail="You must pass the eligibility quiz before submitting an entry.",
             )
 
-        # If passed_at is None (legacy record), skip the window check gracefully.
         if latest_pass.passed_at is not None:
             now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
             elapsed = (now_utc - latest_pass.passed_at).total_seconds() / 60
@@ -222,9 +187,7 @@ async def create_submission(
                     ),
                 )
 
-    # -----------------------------------------------------------------------
     # Validate exactly 25 words.
-    # -----------------------------------------------------------------------
     words = entry_in.content.split()
     if len(words) != 25:
         raise HTTPException(
@@ -232,10 +195,8 @@ async def create_submission(
             detail=f"Entry must be exactly 25 words. You provided {len(words)} words.",
         )
 
-    # -----------------------------------------------------------------------
     # Persist the entry immediately so the client gets a 201 fast.
-    # P1: AI scoring is dispatched as a background task.
-    # -----------------------------------------------------------------------
+    # Scoring is now dispatched as a persistent Redis task.
     device_id = entry_in.device_id or x_device_id
     entry = models.Entry(
         user_id=str(current_user.id),
@@ -248,7 +209,11 @@ async def create_submission(
     db.commit()
     db.refresh(entry)
 
-    # Fire-and-forget scoring in a background task.
-    background_tasks.add_task(_score_and_save, entry.id, entry_in.content, None)
+    # Enqueue persistent scoring task via arq
+    if hasattr(request.app.state, "redis_pool"):
+        await request.app.state.redis_pool.enqueue_job("score_entry_task", str(entry.id), entry.content)
+    else:
+        import logging
+        logging.getLogger(__name__).warning("Redis pool not available. Scoring task not enqueued.")
 
     return entry
