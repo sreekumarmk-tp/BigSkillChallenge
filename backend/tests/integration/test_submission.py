@@ -31,7 +31,7 @@ def auth_header(client, db):
             f.write(f"Auth Header Error: {str(e)}\n{traceback.format_exc()}")
         raise e
 
-def test_submit_entry(client, auth_header, mock_ai_adapter, db):
+def test_submit_entry(client, auth_header, mock_ai_adapter, db, mock_redis_pool):
     try:
         # 1. Create competition
         comp_response = client.post(
@@ -77,7 +77,17 @@ def test_submit_entry(client, auth_header, mock_ai_adapter, db):
         assert response.status_code == 201
         data = response.json()
         assert data["content"] == content
+        
+        # Verify that score is NOT present immediately (async)
         assert data.get("score") is None
+        
+        # 3. Verify Redis task enqueued
+        mock_redis_pool.enqueue_job.assert_called_once()
+        args, kwargs = mock_redis_pool.enqueue_job.call_args
+        assert args[0] == "score_entry_task"
+        assert args[1] == data["id"]
+        assert args[2] == content
+
     except Exception as e:
         with open("/mnt/data/sreekumar/projects/AgenticAI/BigSkillChallenge/backend/scratch/test_fail.txt", "a") as f:
             f.write(f"Test Entry Error: {str(e)}\n{traceback.format_exc()}")

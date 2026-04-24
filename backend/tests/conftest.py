@@ -22,9 +22,11 @@ SlowAPIMiddleware.dispatch = lambda self, request, call_next: call_next(request)
 import app.core.limiter
 app.core.limiter.limiter.enabled = False
 
-# 2. Mock ensure_db_running
+# 2. Mock infrastructure checks
 import app.core.db_setup
+import app.core.redis_setup
 app.core.db_setup.ensure_db_running = MagicMock()
+app.core.redis_setup.ensure_redis_running = MagicMock()
 
 # 3. Set DATABASE_URL env var to use SQLite before app.main imports anything
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
@@ -128,13 +130,25 @@ def superuser_token_headers(test_superuser: User) -> dict:
 @pytest.fixture
 def mock_ai_adapter(mocker):
     from app import schemas
-    mock = mocker.patch("app.api.submission.evaluate_entry", new_callable=mocker.AsyncMock)
+    mock = mocker.patch("app.worker.evaluate_entry", new_callable=mocker.AsyncMock)
     mock.return_value = schemas.ScoreResponse(
         relevance_score=8.5,
         creativity_score=7.0,
         clarity_score=9.0,
         impact_score=8.0,
         total_score=32.5,
-        feedback="Great response!"
+        feedback="Great response!",
+        prompt_version="v1"
     )
     return mock
+
+@pytest.fixture(autouse=True)
+def mock_redis_pool(mocker):
+    # Mock get_redis_pool to return a mock pool
+    mock_pool = mocker.AsyncMock()
+    mocker.patch("app.core.redis.get_redis_pool", return_value=mock_pool)
+    
+    # Also ensure app.state.redis_pool is set
+    from app.main import app
+    app.state.redis_pool = mock_pool
+    return mock_pool
