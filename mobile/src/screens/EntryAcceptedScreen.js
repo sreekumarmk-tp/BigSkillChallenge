@@ -25,7 +25,7 @@ const EntryAcceptedScreen = ({ route, navigation }) => {
         <View style={styles.badge}>
           <Text style={styles.badgeText}>Entry Accepted!</Text>
         </View>
-        <Text style={styles.title}>Entry Accepted!</Text>
+        <Text testID="entry-accepted-title" style={styles.title}>Entry Accepted!</Text>
         <Text style={styles.subtitle}>Your entry has been successfully submitted and recorded.</Text>
 
         <View style={styles.receiptCard}>

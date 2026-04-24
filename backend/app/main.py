@@ -1,4 +1,5 @@
 print("Loading main.py...")
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -32,7 +33,10 @@ app = FastAPI(
 # -----------------------------------------------------------------------
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
+
+is_testing = os.getenv("TESTING", "false").lower() == "true"
+if not is_testing:
+    app.add_middleware(SlowAPIMiddleware)
 
 cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()]
 

@@ -6,18 +6,35 @@ import sys
 # Add backend to path if not already there
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 1. Mock ensure_db_running
+# 1. Force TESTING environment and completely neutralize limiter early
+os.environ["TESTING"] = "true"
+os.environ["ENVIRONMENT"] = "testing" # Prevent forcing mock mode in payment.py
+os.environ["STRIPE_SECRET_KEY"] = "sk_test_fake" # Ensure _get_stripe returns stripe module
+
+import slowapi
+# Neutralize the limit decorator before any router uses it
+slowapi.Limiter.limit = lambda *args, **kwargs: (lambda f: f)
+
+# Neutralize the middleware dispatch to prevent 429 even if it's accidentally added
+from slowapi.middleware import SlowAPIMiddleware
+SlowAPIMiddleware.dispatch = lambda self, request, call_next: call_next(request)
+
+import app.core.limiter
+app.core.limiter.limiter.enabled = False
+
+# 2. Mock ensure_db_running
 import app.core.db_setup
 app.core.db_setup.ensure_db_running = MagicMock()
 
-# 2. Set DATABASE_URL env var to use SQLite before app.main imports anything
+# 3. Set DATABASE_URL env var to use SQLite before app.main imports anything
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
+from fastapi.testclient import TestClient
 
-# 3. Create the test engine
+# 4. Create the test engine
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 test_engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
@@ -25,16 +42,17 @@ test_engine = create_engine(
     poolclass=StaticPool,
 )
 
-# 4. Patch the engine in app.database BEFORE it's imported by app.main
+# 5. Patch the engine and session factory in app.database
 import app.database
 app.database.engine = test_engine
-app.database.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+app.database.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine, expire_on_commit=False)
 
-from fastapi.testclient import TestClient
 from app.main import app
 from app.database import Base, get_db
+from app.core.security import create_access_token
+from app.models import User
 
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine, expire_on_commit=False)
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
@@ -44,15 +62,15 @@ def setup_test_db():
 
 @pytest.fixture(scope="function")
 def db():
-    connection = test_engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-    
+    session = TestingSessionLocal()
     yield session
-    
     session.close()
-    transaction.rollback()
-    connection.close()
+    
+    # Cleanup data after each test
+    with test_engine.connect() as conn:
+        for table in reversed(Base.metadata.sorted_tables):
+            conn.execute(table.delete())
+        conn.commit()
 
 @pytest.fixture(scope="function")
 def client(db):
@@ -66,6 +84,46 @@ def client(db):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+@pytest.fixture
+def test_user(db: Session) -> User:
+    user = User(
+        email="test@example.com",
+        hashed_password="hashed_password",
+        first_name="Test",
+        last_name="User",
+        is_active=True,
+        is_admin=False,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+@pytest.fixture
+def test_superuser(db: Session) -> User:
+    user = User(
+        email="admin@example.com",
+        hashed_password="hashed_password",
+        first_name="Admin",
+        last_name="User",
+        is_active=True,
+        is_admin=True,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+@pytest.fixture
+def normal_user_token_headers(test_user: User) -> dict:
+    access_token = create_access_token(subject=str(test_user.id))
+    return {"Authorization": f"Bearer {access_token}"}
+
+@pytest.fixture
+def superuser_token_headers(test_superuser: User) -> dict:
+    access_token = create_access_token(subject=str(test_superuser.id))
+    return {"Authorization": f"Bearer {access_token}"}
 
 @pytest.fixture
 def mock_ai_adapter(mocker):

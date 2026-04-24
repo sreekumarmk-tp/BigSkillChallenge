@@ -94,7 +94,7 @@ const QuizScreen = ({ navigation }) => {
   return (
     <ScreenShell>
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-        <Text style={[styles.timer, styles.textShadowed]}>{timeLeft}s</Text>
+        <Text testID="quiz-timer" style={[styles.timer, styles.textShadowed]}>{timeLeft}s</Text>
         <View style={styles.progressBarBg}>
           <View style={[styles.progressBarFill, { width: `${(timeLeft / 30) * 100}%` }]} />
         </View>
@@ -106,7 +106,7 @@ const QuizScreen = ({ navigation }) => {
 
         <View style={styles.optionsContainer}>
           {['A', 'B', 'C', 'D'].map((opt) => (
-            <TouchableOpacity key={opt} style={styles.optionButton} onPress={() => handleAnswer(opt)} activeOpacity={0.85}>
+            <TouchableOpacity key={opt} testID={`quiz-option-${opt}`} style={styles.optionButton} onPress={() => handleAnswer(opt)} activeOpacity={0.85}>
               <Text style={styles.optionText}>
                 {opt}) {currentQuestion[`option_${opt.toLowerCase()}`]}
               </Text>

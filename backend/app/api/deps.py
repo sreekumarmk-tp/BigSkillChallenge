@@ -4,9 +4,9 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from app import models, schemas
-from app.core import security
 from app.core.config import settings
 from app.database import SessionLocal
 
@@ -22,7 +22,8 @@ def get_db() -> Generator:
         db.close()
 
 def get_current_user(
-    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
+    db: Session = Depends(get_db),
+    token: str = Depends(reusable_oauth2)
 ) -> models.User:
     try:
         payload = jwt.decode(
@@ -34,14 +35,13 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    if token_data.sub is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
-        )
-    user = db.query(models.User).filter(models.User.id == str(token_data.sub)).first()
+    
+    user_id = str(token_data.sub)
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+        
     return user
 
 def get_current_active_user(
@@ -49,4 +49,13 @@ def get_current_active_user(
 ) -> models.User:
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+def get_current_active_superuser(
+    current_user: models.User = Depends(get_current_user),
+) -> models.User:
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=400, detail="The user doesn't have enough privileges"
+        )
     return current_user

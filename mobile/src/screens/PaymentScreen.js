@@ -68,7 +68,7 @@ const PaymentScreen = ({ navigation }) => {
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <TouchableOpacity style={styles.ctaWrap} onPress={handlePay} disabled={loading} activeOpacity={0.85}>
+            <TouchableOpacity testID="payment-button" style={styles.ctaWrap} onPress={handlePay} disabled={loading} activeOpacity={0.85}>
               <LinearGradient
                 colors={!loading ? CTA_GRADIENT_COLORS : ['#4A4A5C', '#3D3D4D']}
                 style={styles.button}

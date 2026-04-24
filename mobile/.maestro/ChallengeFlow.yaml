@@ -1,0 +1,19 @@
+appId: com.bigskillchallenge.arena
+---
+- launchApp
+- tapOn: "start-new-challenge"
+- tapOn: "eligibility-check-1"
+- tapOn: "eligibility-check-2"
+- tapOn: "eligibility-check-3"
+- tapOn: "eligibility-continue-button"
+- tapOn: "payment-button"
+- assertVisible: "quiz-timer" # Check if quiz timer is visible
+- tapOn: "quiz-option-A"
+- tapOn: "quiz-option-B"
+- tapOn: "quiz-option-C"
+- tapOn: "quiz-option-D"
+- tapOn: "quiz-option-A"
+- assertVisible: "creative-submission-input"
+- inputText: "creative-submission-input": "This is exactly twenty five words to win the prize because AI is amazing and I am a great developer who loves testing things very much."
+- tapOn: "creative-submission-button"
+- assertVisible: "entry-accepted-title"

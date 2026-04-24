@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 jest.mock('axios', () => ({
   create: jest.fn(() => ({
@@ -8,6 +9,11 @@ jest.mock('axios', () => ({
       response: { use: jest.fn() },
     },
   })),
+}));
+
+// Mock Constants to test host detection
+jest.mock('expo-constants', () => ({
+  expoConfig: { hostUri: '192.168.1.10:8081' }
 }));
 
 // Now import api
@@ -29,5 +35,12 @@ describe('API Service', () => {
     const result = await interceptor(config);
     
     expect(result.headers.Authorization).toBe(`Bearer ${mockToken}`);
+  });
+
+  it('should reject if interceptor receives an error', async () => {
+    const errorInterceptor = api.interceptors.request.use.mock.calls[0][1];
+    const mockError = new Error('test error');
+    
+    await expect(errorInterceptor(mockError)).rejects.toThrow('test error');
   });
 });

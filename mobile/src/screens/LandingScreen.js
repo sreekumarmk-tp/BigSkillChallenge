@@ -93,6 +93,7 @@ const LandingScreen = ({ navigation }) => {
             </Text>
           </View>
           <TouchableOpacity
+            testID="landing-login-button"
             style={styles.loginBtn}
             onPress={() => navigation.navigate('Auth', { mode: 'login' })}
           >
@@ -163,6 +164,7 @@ const LandingScreen = ({ navigation }) => {
 
           {/* CTA */}
           <TouchableOpacity 
+            testID="landing-enter-button"
             style={styles.ctaButtonWrapper}
             onPress={() => navigation.navigate('Auth')}
           >

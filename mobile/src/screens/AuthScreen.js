@@ -85,8 +85,8 @@ const AuthScreen = ({ navigation, route }) => {
     setError('');
   };
 
-  const CustomCheckbox = ({ label, isChecked, onPress }) => (
-    <TouchableOpacity style={styles.checkboxContainer} onPress={onPress} activeOpacity={0.7}>
+  const CustomCheckbox = ({ label, isChecked, onPress, testID }) => (
+    <TouchableOpacity testID={testID} style={styles.checkboxContainer} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
         {isChecked && <MaterialCommunityIcons name="check" size={14} color="#000" />}
       </View>
@@ -194,16 +194,19 @@ const AuthScreen = ({ navigation, route }) => {
                 {isRegister && (
                   <View style={styles.checkboxesSection}>
                     <CustomCheckbox 
+                      testID="checkbox-over18"
                       label="I confirm I am over 18" 
                       isChecked={isOver18} 
                       onPress={() => setIsOver18(!isOver18)} 
                     />
                     <CustomCheckbox 
+                      testID="checkbox-terms"
                       label="I agree to Terms & Conditions" 
                       isChecked={isAgreedTerms} 
                       onPress={() => setIsAgreedTerms(!isAgreedTerms)} 
                     />
                     <CustomCheckbox 
+                      testID="checkbox-skill"
                       label="I understand this is a skill-based competition" 
                       isChecked={isSkillBased} 
                       onPress={() => setIsSkillBased(!isSkillBased)} 
@@ -239,6 +242,7 @@ const AuthScreen = ({ navigation, route }) => {
                     <Text style={styles.inputLabel}>FULL NAME</Text>
                     <View style={styles.inputWrapper}>
                       <TextInput
+                        testID="full-name-input"
                         style={styles.input}
                         placeholder="John Doe"
                         placeholderTextColor="#555"
@@ -255,6 +259,7 @@ const AuthScreen = ({ navigation, route }) => {
                   <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
                   <View style={styles.inputWrapper}>
                     <TextInput
+                      testID="email-input"
                       style={[styles.input, styles.emailInput]}
                       placeholder="challenger@arena.com"
                       placeholderTextColor="#555"
@@ -272,6 +277,7 @@ const AuthScreen = ({ navigation, route }) => {
                   <Text style={styles.inputLabel}>PASSWORD</Text>
                   <View style={styles.inputWrapper}>
                     <TextInput
+                      testID="password-input"
                       style={styles.input}
                       placeholder="••••••••"
                       placeholderTextColor="#555"
@@ -287,16 +293,19 @@ const AuthScreen = ({ navigation, route }) => {
                 {isRegister && (
                   <View style={styles.checkboxesSection}>
                     <CustomCheckbox 
+                      testID="checkbox-over18"
                       label="I confirm I am over 18" 
                       isChecked={isOver18} 
                       onPress={() => setIsOver18(!isOver18)} 
                     />
                     <CustomCheckbox 
+                      testID="checkbox-terms"
                       label="I agree to Terms & Conditions" 
                       isChecked={isAgreedTerms} 
                       onPress={() => setIsAgreedTerms(!isAgreedTerms)} 
                     />
                     <CustomCheckbox 
+                      testID="checkbox-skill"
                       label="I understand this is a skill-based competition" 
                       isChecked={isSkillBased} 
                       onPress={() => setIsSkillBased(!isSkillBased)} 
@@ -305,6 +314,7 @@ const AuthScreen = ({ navigation, route }) => {
                 )}
 
                 <TouchableOpacity 
+                  testID="auth-submit-button"
                   style={styles.ctaButtonWrapper}
                   onPress={handleAuth}
                   disabled={loading}

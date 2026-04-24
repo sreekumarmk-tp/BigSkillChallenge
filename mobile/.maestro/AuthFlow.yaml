@@ -1,0 +1,16 @@
+appId: com.bigskillchallenge.arena
+---
+- launchApp
+- tapOn: "landing-enter-button"
+- assertVisible: "full-name-input"
+- inputText: "full-name-input": "Maestro Tester"
+- inputText: "email-input": "tester@maestro.ai"
+- inputText: "password-input": "password123"
+- tapOn: "checkbox-over18"
+- tapOn: "checkbox-terms"
+- tapOn: "checkbox-skill"
+- tapOn: "auth-submit-button"
+- assertVisible: "otp-input"
+- inputText: "otp-input": "123456"
+- tapOn: "verify-button"
+- assertVisible: "eligibility-continue-button"

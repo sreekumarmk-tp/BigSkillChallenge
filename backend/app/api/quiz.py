@@ -55,25 +55,10 @@ def get_quiz_questions(
 ) -> Any:
     competition_id_str = str(competition_id)
     # Check eligibility (10-attempt limit and payment)
-    attempts_count = check_attempt_eligibility(db, current_user.id, competition_id)
+    check_attempt_eligibility(db, current_user.id, competition_id)
     
     # Pick random 5 questions
     questions = db.query(models.Question).order_by(func.random()).limit(5).all()
-    
-    # Create new attempt record
-    attempt = models.QuizAttempt(
-        user_id=str(current_user.id),
-        competition_id=competition_id_str,
-        attempt_number=attempts_count + 1,
-        status="pending"
-    )
-    db.add(attempt)
-    db.commit()
-    db.refresh(attempt)
-    
-    # Return questions and we include the attempt_id in the response headers or as first element?
-    # Let's change schema or return a wrapper.
-    # Actually, let's just make a start endpoint that returns attempt info + questions.
     return questions
 
 @router.post("/start", response_model=schemas.QuizStartResponse)
@@ -85,7 +70,6 @@ def start_quiz(
 ) -> Any:
     competition_id_str = str(attempt_in.competition_id)
     # If there is an unfinished pending attempt, treat it as timed out.
-    # This ensures timed-out attempts are recorded as failed and consume an attempt.
     pending_attempt = db.query(models.QuizAttempt).filter(
         models.QuizAttempt.user_id == current_user.id,
         models.QuizAttempt.competition_id == competition_id_str,
@@ -113,9 +97,12 @@ def start_quiz(
     # Pick random 5 questions
     questions = db.query(models.Question).order_by(func.random()).limit(5).all()
     
+    # Convert to schema explicitly to avoid lazy loading issues
+    questions_resp = [schemas.QuestionResponse.model_validate(q) for q in questions]
+    
     return {
         "attempt_id": attempt.id,
-        "questions": questions,
+        "questions": questions_resp,
         "attempt_number": attempt.attempt_number
     }
 
@@ -124,7 +111,7 @@ def evaluate_answer(
     *,
     db: Session = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user),
-    eval_in: schemas.AnswerEvaluationRequest, # Fixed schema
+    eval_in: schemas.AnswerEvaluationRequest,
 ) -> Any:
     attempt_id_str = str(eval_in.attempt_id)
     question_id_str = str(eval_in.question_id)
@@ -172,10 +159,8 @@ def submit_quiz(
     if attempt.status == "failed":
          return attempt
 
-    # Final check: did they answer all 5 and were they all correct?
     if attempt.score == 5:
         attempt.status = "passed"
-        # P1: Record the exact time the quiz was passed — used by submission time-window.
         from datetime import datetime, timezone
         attempt.passed_at = datetime.now(timezone.utc).replace(tzinfo=None)
     else:

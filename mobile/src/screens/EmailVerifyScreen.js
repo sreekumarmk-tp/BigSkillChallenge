@@ -34,6 +34,7 @@ const EmailVerifyScreen = ({ navigation }) => {
           <Text style={styles.subtitle}>Enter the 6-digit code sent to your email.</Text>
 
           <TextInput
+            testID="otp-input"
             style={styles.input}
             placeholder="000000"
             placeholderTextColor="#555"
@@ -46,6 +47,7 @@ const EmailVerifyScreen = ({ navigation }) => {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <TouchableOpacity
+            testID="verify-button"
             style={styles.ctaWrap}
             disabled={otp.length !== 6}
             onPress={handleVerify}

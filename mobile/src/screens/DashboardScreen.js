@@ -159,6 +159,7 @@ const DashboardScreen = ({ navigation }) => {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
+            testID="start-new-challenge"
             style={styles.ctaWrap}
             disabled={competitionAttempts.length >= 10}
             onPress={() => navigation.navigate('Eligibility')}

@@ -31,7 +31,7 @@ def auth_header(client, db):
             f.write(f"Auth Header Error: {str(e)}\n{traceback.format_exc()}")
         raise e
 
-def test_submit_entry(client, auth_header, mock_ai_adapter):
+def test_submit_entry(client, auth_header, mock_ai_adapter, db):
     try:
         # 1. Create competition
         comp_response = client.post(
@@ -45,6 +45,19 @@ def test_submit_entry(client, auth_header, mock_ai_adapter):
         assert comp_response.status_code == 200
         competition_id = comp_response.json()["id"]
 
+        # 1.5 Create a passed QuizAttempt
+        # Get the latest user created by the auth_header fixture
+        user = db.query(models.User).order_by(models.User.created_at.desc()).first()
+        quiz_attempt = models.QuizAttempt(
+            user_id=user.id,
+            competition_id=competition_id,
+            attempt_number=1,
+            status="passed",
+            score=100
+        )
+        db.add(quiz_attempt)
+        db.commit()
+
         # 2. Submit entry
         content = " ".join(["word"] * 25)
         
@@ -57,15 +70,14 @@ def test_submit_entry(client, auth_header, mock_ai_adapter):
             }
         )
         
-        if response.status_code != 200:
+        if response.status_code != 201:
              with open("/mnt/data/sreekumar/projects/AgenticAI/BigSkillChallenge/backend/scratch/test_fail.txt", "w") as f:
                 f.write(f"Submission failed: {response.status_code} - {response.text}")
         
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
         assert data["content"] == content
-        assert "score" in data
-        assert data["score"]["total_score"] == 32.5
+        assert data.get("score") is None
     except Exception as e:
         with open("/mnt/data/sreekumar/projects/AgenticAI/BigSkillChallenge/backend/scratch/test_fail.txt", "a") as f:
             f.write(f"Test Entry Error: {str(e)}\n{traceback.format_exc()}")

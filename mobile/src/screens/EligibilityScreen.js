@@ -6,8 +6,8 @@ import ScreenShell from '../components/ScreenShell';
 import AppFooter from '../components/AppFooter';
 import { NEON_CYAN, NEON_BLUE, CARD_BG, TEXT_MUTED, CTA_GRADIENT_COLORS, PREMIUM_GOLD, getShadow, getTextShadow } from '../theme/neonTheme';
 
-const Checkbox = ({ isChecked, onPress, label }) => (
-  <TouchableOpacity style={styles.checkboxContainer} onPress={onPress} activeOpacity={0.7}>
+const Checkbox = ({ isChecked, onPress, label, testID }) => (
+  <TouchableOpacity testID={testID} style={styles.checkboxContainer} onPress={onPress} activeOpacity={0.7}>
     <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
       {isChecked ? <MaterialCommunityIcons name="check" size={14} color="#000" /> : null}
     </View>
@@ -49,16 +49,19 @@ const EligibilityScreen = ({ navigation }) => {
 
         <View style={styles.checklistCard}>
           <Checkbox
+            testID="eligibility-check-1"
             isChecked={c1}
             onPress={() => setC1(!c1)}
             label="I confirm I am eligible to enter this competition."
           />
           <Checkbox
+            testID="eligibility-check-2"
             isChecked={c2}
             onPress={() => setC2(!c2)}
             label="I understand a maximum of 10 entries is permitted per competition."
           />
           <Checkbox
+            testID="eligibility-check-3"
             isChecked={c3}
             onPress={() => setC3(!c3)}
             label="I acknowledge that this is a competition of skill, not chance."
@@ -71,6 +74,7 @@ const EligibilityScreen = ({ navigation }) => {
         </View>
 
         <TouchableOpacity
+          testID="eligibility-continue-button"
           style={styles.ctaButtonWrapper}
           disabled={!allChecked}
           onPress={() => navigation.navigate('Payment')}

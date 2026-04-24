@@ -124,6 +124,52 @@ cp .env.example .env
 npx expo start
 ```
 
+### 4. Running Tests & Coverage
+
+#### 🐍 Backend Tests (FastAPI)
+We use `pytest` for backend testing. **CRITICAL**: You must set `TESTING=true` to bypass rate limits and use the in-memory test database.
+
+```bash
+# Navigate to the backend directory
+cd backend
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install testing dependencies
+uv pip install pytest pytest-cov pytest-asyncio pytest-mock httpx coverage
+
+# Run all tests with coverage report
+export TESTING=true
+pytest -v -s --cov=app --cov-report=term-missing tests/
+
+```
+
+#### 📱 Mobile Tests (React Native)
+We use `Jest` and `React Testing Library` for unit and integration tests, and `Maestro` for E2E integration.
+
+##### 1. Unit & Integration Tests (with Coverage)
+```bash
+# Navigate to the mobile directory
+cd mobile
+
+# Run all tests and generate a coverage report
+npm test -- --coverage --collectCoverageFrom="src/**/*.{js,jsx}" --watchAll=false
+```
+
+##### 2. E2E Integration Tests (Maestro)
+Maestro flows automate the full user journey on a running emulator or device.
+```bash
+# 1. Install Maestro
+# curl -Ls "https://get.maestro.mobile.dev" | bash
+
+# 2. Run flows (ensure app and backend are running first)
+maestro test .maestro/AuthFlow.yaml
+maestro test .maestro/ChallengeFlow.yaml
+```
+> [!NOTE]
+> For more details on mobile E2E, see [MOBILE_E2E_GUIDE.md](./mobile/MOBILE_E2E_GUIDE.md).
+
 
 ## 🔄 Project Workflow
 
@@ -176,4 +222,3 @@ graph LR
 - [x] **System Hardening** including database connection pooling, background tasks, and parameter pinning for deterministic AI.
 - [x] **Comprehensive Testing Suites** using `pytest` for the backend and `Jest` for the React Native mobile app.
 - [x] **Privacy & Security** by restricting evaluator feedback from the public Result Screen.
-

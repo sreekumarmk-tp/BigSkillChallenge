@@ -118,6 +118,7 @@ const CreativeSubmissionScreen = ({ navigation }) => {
 
             {/* P1: contextMenuHidden disables long-press paste on native iOS/Android */}
             <TextInput
+              testID="creative-submission-input"
               style={styles.inputArea}
               multiline
               numberOfLines={8}
@@ -140,6 +141,7 @@ const CreativeSubmissionScreen = ({ navigation }) => {
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
             <TouchableOpacity
+              testID="creative-submission-button"
               style={styles.ctaWrap}
               onPress={handleSubmit}
               disabled={words !== 25 || loading || timeLeft <= 0}
