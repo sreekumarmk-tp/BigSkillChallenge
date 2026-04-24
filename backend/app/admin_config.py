@@ -52,9 +52,10 @@ class CompetitionAdmin(ModelView, model=Competition):
     icon = "fa-solid fa-trophy"
 
 class EntryAdmin(ModelView, model=Entry):
-    column_list = [Entry.id, Entry.user_id, Entry.competition_id, Entry.status, Entry.is_shortlisted, Entry.is_winner, Entry.created_at, "score.total_score"]
+    column_list = [Entry.id, Entry.status, Entry.is_shortlisted, Entry.is_winner, Entry.created_at, "score.total_score"]
     column_details_list = [Entry.id, Entry.user_id, Entry.competition_id, Entry.content, Entry.status, Entry.is_shortlisted, Entry.is_winner, Entry.created_at]
     column_sortable_list = [Entry.id, Entry.user_id, Entry.status, Entry.is_shortlisted, Entry.is_winner, Entry.created_at, "score.total_score"]
+    column_default_sort = [(Entry.created_at, True)]
     column_labels = {"score.total_score": "Total Score"}
     name_plural = "Entries"
     icon = "fa-solid fa-file-pen"
@@ -65,32 +66,9 @@ class EntryAdmin(ModelView, model=Entry):
     column_display_actions = False
     edit_template = "entry_edit.html"
 
-    def list_query(self, request):
-        from sqlalchemy import select, desc
-        from app.models import Score
-        
-        # Select the entry with the highest score per user.
-        # If scores are tied, use the most recent entry (Order by total_score DESC, created_at DESC).
-        # We use DISTINCT ON (user_id) for PostgreSQL efficiency and clarity.
-        query = (
-            select(Entry)
-            .join(Score, Entry.id == Score.entry_id)
-            .distinct(Entry.user_id)
-            .order_by(Entry.user_id, desc(Score.total_score), desc(Entry.created_at))
-        )
-        return query
-
-    def count_query(self, request):
-        from sqlalchemy import select, func
-        from app.models import Score
-        # Count of unique users who have scored entries
-        query = select(func.count(func.distinct(Entry.user_id))).join(Score, Entry.id == Score.entry_id)
-        return query
-
 class ScoreAdmin(ModelView, model=Score):
     column_list = [
         Score.id,
-        Score.entry_id,
         "entry.is_shortlisted",
         "entry.status",
         Score.total_score,
@@ -117,8 +95,7 @@ class ScoreAdmin(ModelView, model=Score):
         return (
             select(Score)
             .join(Entry, Score.entry_id == Entry.id)
-            .where((Entry.is_shortlisted == True) | (Entry.status == "shortlisted"))
-            .order_by(Score.total_score.desc())
+            .where(Entry.is_shortlisted == True)
         )
 
     def count_query(self, request):
@@ -128,7 +105,7 @@ class ScoreAdmin(ModelView, model=Score):
         return (
             select(func.count(Score.id))
             .join(Entry, Score.entry_id == Entry.id)
-            .where((Entry.is_shortlisted == True) | (Entry.status == "shortlisted"))
+            .where(Entry.is_shortlisted == True)
         )
 
 
